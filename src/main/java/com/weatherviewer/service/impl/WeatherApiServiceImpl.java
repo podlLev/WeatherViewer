@@ -53,21 +53,21 @@ public class WeatherApiServiceImpl implements WeatherApiService {
     private String GEOCODING_API_URL_SUFFIX;
 
     @Override
-    public WeatherDto fetchWeatherByLocation(LocationDto locationdto) {
+    public WeatherDto getWeatherByLocation(LocationDto locationdto) {
         Location location = locationMapper.fromDto(locationdto);
-        return fetchWeatherByLocation(location);
+        return getWeatherByLocation(location);
     }
 
     @Override
-    public WeatherDto fetchWeatherByLocation(Location location) {
+    public WeatherDto getWeatherByLocation(Location location) {
         if (location.getLatitude() != null && location.getLongitude() != null) {
-            return fetchWeatherByCoordinates(location.getLatitude(), location.getLongitude());
+            return getWeatherByCoordinates(location.getLatitude(), location.getLongitude());
         }
-        return fetchWeatherByCity(location.getName());
+        return getWeatherByCity(location.getName());
     }
 
     @Override
-    public WeatherDto fetchWeatherByCity(String city) {
+    public WeatherDto getWeatherByCity(String city) {
         log.info("Fetching current weather for city: {}", city);
         String url = buildCityUrl(WEATHER_API_URL_SUFFIX, city);
         return fetchWeather(url);
@@ -106,7 +106,7 @@ public class WeatherApiServiceImpl implements WeatherApiService {
     }
 
     @Override
-    public WeatherDto fetchWeatherByCoordinates(double latitude, double longitude) {
+    public WeatherDto getWeatherByCoordinates(double latitude, double longitude) {
         log.info("Fetching current weather for latitude={}, longitude={}", latitude, longitude);
         String url = buildCoordinatesUrl(WEATHER_API_URL_SUFFIX, latitude, longitude);
         return fetchWeather(url);
@@ -117,7 +117,7 @@ public class WeatherApiServiceImpl implements WeatherApiService {
     }
 
     @Override
-    public List<WeatherDto> fetchDailyForecastByCity(String city) {
+    public List<WeatherDto> getDailyForecastByCity(String city) {
         log.info("Fetching daily forecast for city: {}", city);
         String url = buildCityUrl(FORECAST_API_URL_SUFFIX, city);
         List<WeatherDto> hourlyForecasts = fetchForecast(url);
@@ -191,7 +191,7 @@ public class WeatherApiServiceImpl implements WeatherApiService {
     }
 
     @Override
-    public List<WeatherDto> fetchDailyForecastByCoordinates(double latitude, double longitude) {
+    public List<WeatherDto> getDailyForecastByCoordinates(double latitude, double longitude) {
         log.info("Fetching daily forecast for latitude={}, longitude={}", latitude, longitude);
         String url = buildCoordinatesUrl(FORECAST_API_URL_SUFFIX, latitude, longitude);
         List<WeatherDto> hourlyForecasts = fetchForecast(url);
@@ -199,21 +199,21 @@ public class WeatherApiServiceImpl implements WeatherApiService {
     }
 
     @Override
-    public List<WeatherDto> fetchHourlyForecastByCity(String city) {
+    public List<WeatherDto> getHourlyForecastByCity(String city) {
         log.info("Fetching hourly forecast for city: {}", city);
         String url = buildCityUrl(FORECAST_API_URL_SUFFIX, city);
         return fetchForecast(url);
     }
 
     @Override
-    public List<WeatherDto> fetchHourlyForecastByCoordinates(double latitude, double longitude) {
+    public List<WeatherDto> getHourlyForecastByCoordinates(double latitude, double longitude) {
         log.info("Fetching hourly forecast for latitude={}, longitude={}", latitude, longitude);
         String url = buildCoordinatesUrl(FORECAST_API_URL_SUFFIX, latitude, longitude);
         return fetchForecast(url);
     }
 
     @Override
-    public List<GeoLocationDto> fetchCitiesByName(String city) {
+    public List<GeoLocationDto> getCitiesByName(String city) {
         log.info("Fetching geo data for city: {}", city);
         String url = buildUrl(GEOCODING_API_URL_SUFFIX, "&q=" + city + "&limit=10");
         return fetchGeo(url);

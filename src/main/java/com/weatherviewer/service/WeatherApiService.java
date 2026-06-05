@@ -9,22 +9,22 @@ import java.util.List;
 
 public interface WeatherApiService {
 
-    WeatherDto fetchWeatherByLocation(LocationDto locationdto);
+    WeatherDto getWeatherByLocation(LocationDto locationdto);
 
-    WeatherDto fetchWeatherByLocation(Location location);
+    WeatherDto getWeatherByLocation(Location location);
 
-    WeatherDto fetchWeatherByCity(String city);
+    WeatherDto getWeatherByCity(String city);
 
-    WeatherDto fetchWeatherByCoordinates(double latitude, double longitude);
+    WeatherDto getWeatherByCoordinates(double latitude, double longitude);
 
-    List<WeatherDto> fetchDailyForecastByCity(String city);
+    List<WeatherDto> getDailyForecastByCity(String city);
 
-    List<WeatherDto> fetchDailyForecastByCoordinates(double latitude, double longitude);
+    List<WeatherDto> getDailyForecastByCoordinates(double latitude, double longitude);
 
-    List<WeatherDto> fetchHourlyForecastByCity(String city);
+    List<WeatherDto> getHourlyForecastByCity(String city);
 
-    List<WeatherDto> fetchHourlyForecastByCoordinates(double latitude, double longitude);
+    List<WeatherDto> getHourlyForecastByCoordinates(double latitude, double longitude);
 
-    List<GeoLocationDto> fetchCitiesByName(String city);
+    List<GeoLocationDto> getCitiesByName(String city);
 
 }
