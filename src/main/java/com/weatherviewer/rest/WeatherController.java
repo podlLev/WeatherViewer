@@ -24,8 +24,7 @@ public class WeatherController {
 
     @GetMapping("/location")
     public WeatherDto getWeatherByLocation(@RequestBody LocationDto locationDto) {
-        log.info("Request: getWeatherByLocation called for location name={} and userId={}",
-                locationDto.getName(), locationDto.getUserId());
+        log.info("Request: getWeatherByLocation called for location name={} ", locationDto.getName());
         return weatherApiService.getWeatherByLocation(locationDto);
     }
 
