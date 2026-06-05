@@ -1,6 +1,7 @@
 package com.weatherviewer.mapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.dto.enums.TimeOfDay;
 import com.weatherviewer.dto.enums.WeatherCondition;
@@ -34,5 +35,12 @@ public interface WeatherApiMapper {
     @Mapping(target = "sunrise", expression = "java(JsonNodeUtils.getDate(jsonNode, \"sys.sunrise\"))")
     @Mapping(target = "sunset", expression = "java(JsonNodeUtils.getDate(jsonNode, \"sys.sunset\"))")
     WeatherDto toWeatherDto(JsonNode jsonNode);
+
+    @Mapping(target = "name", expression = "java(JsonNodeUtils.getString(jsonNode, \"name\"))")
+    @Mapping(target = "latitude", expression = "java(JsonNodeUtils.getDouble(jsonNode, \"lat\"))")
+    @Mapping(target = "longitude", expression = "java(JsonNodeUtils.getDouble(jsonNode, \"lon\"))")
+    @Mapping(target = "country", expression = "java(JsonNodeUtils.getString(jsonNode, \"country\"))")
+    @Mapping(target = "state", expression = "java(JsonNodeUtils.getString(jsonNode, \"state\"))")
+    GeoLocationDto toGeoLocationDto(JsonNode jsonNode);
 
 }
