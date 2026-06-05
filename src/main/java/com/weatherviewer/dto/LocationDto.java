@@ -24,10 +24,6 @@ public class LocationDto {
 
     private Double longitude;
 
-    private UUID userId;
-
-    private Boolean favorite;
-
     private LocalDateTime createdAt;
 
 }
