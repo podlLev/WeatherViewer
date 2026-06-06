@@ -18,4 +18,10 @@ public class Location extends BaseEntity {
     private Double latitude;
     private Double longitude;
 
+    private boolean favorite;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
 }

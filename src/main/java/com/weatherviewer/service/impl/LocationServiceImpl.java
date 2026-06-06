@@ -5,13 +5,16 @@ import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.exception.notfound.LocationNotFoundException;
 import com.weatherviewer.mapper.LocationMapper;
 import com.weatherviewer.model.Location;
+import com.weatherviewer.model.User;
 import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.service.LocationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -24,9 +27,6 @@ public class LocationServiceImpl implements LocationService {
     @Override
     @Transactional
     public UUID add(AddLocationDto addLocationDto) {
-        if (existsByCoordinates(addLocationDto.getLatitude(), addLocationDto.getLongitude())) {
-            throw new IllegalStateException("Location with these coordinates is already registered");
-        }
         Location location = locationMapper.fromDto(addLocationDto);
         return locationRepository.save(location).getId();
     }
@@ -40,7 +40,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Location getEntityById(UUID id) {
         return locationRepository.findById(id)
-                .orElseThrow(() -> new LocationNotFoundException("Location not found with ID: " + id));
+                .orElseThrow(() -> new LocationNotFoundException("Location not found"));
     }
 
     @Override
@@ -50,55 +50,106 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public LocationDto getByCoordinates(Double latitude, Double longitude) {
-        Location location = locationRepository.findByLatitudeAndLongitude(latitude, longitude)
-                .orElseThrow(() -> new LocationNotFoundException("Location not found for the given coordinates"));
+    public List<LocationDto> getByUserId(UUID userId) {
+        List<Location> locations = locationRepository.findByUserId(userId);
+        return locationMapper.toDtoList(locations);
+    }
+
+    @Override
+    public LocationDto getByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId) {
+        Location location = locationRepository.findByLatitudeAndLongitudeAndUserId(latitude, longitude, userId);
         return locationMapper.toDto(location);
     }
 
     @Override
     @Transactional
     public void delete(UUID id) {
-        if (!locationRepository.existsById(id)) {
-            throw new LocationNotFoundException("Cannot delete. Location not found with ID: " + id);
+        Location location = getEntityById(id);
+        User user = location.getUser();
+        if (user != null && user.getLocations() != null) {
+            user.getLocations().remove(location);
         }
-        locationRepository.deleteById(id);
+        locationRepository.delete(location);
     }
 
     @Override
     @Transactional
-    public void deleteByName(String name) {
-        if (!locationRepository.existsByName(name)) {
-            throw new LocationNotFoundException("Cannot delete. No locations found named: " + name);
+    public void deleteByUserId(UUID userId) {
+        List<Location> locations = locationRepository.findByUserId(userId);
+        for (Location loc : locations) {
+            delete(loc.getId());
         }
-        locationRepository.deleteByName(name);
     }
 
     @Override
-    public boolean existsByName(String name) {
-        return locationRepository.existsByName(name);
+    @Transactional
+    public void deleteByNameAndUserId(String name, UUID userId) {
+        List<Location> locations = locationRepository.findByUserId(userId).stream()
+                .filter(loc -> name.equals(loc.getName()))
+                .toList();
+        for (Location loc : locations) {
+            delete(loc.getId());
+        }
     }
 
     @Override
-    public boolean existsByCoordinates(Double latitude, Double longitude) {
-        return locationRepository.existsByLatitudeAndLongitude(latitude, longitude);
+    public boolean existsByNameAndUserId(String name, UUID userId) {
+        return locationRepository.existsByNameAndUserId(name, userId);
     }
 
     @Override
-    public List<LocationDto> getLocationsSortedByDate() {
-        List<Location> locations = locationRepository.findAllByOrderByCreatedAtDesc();
+    public boolean existsByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId) {
+        return locationRepository.existsByLatitudeAndLongitudeAndUserId(latitude, longitude, userId);
+    }
+
+    @Override
+    @Transactional
+    public void addToFavorite(UUID locationId, UUID userId) {
+        setFavorite(locationId, userId, true);
+    }
+
+    private void setFavorite(UUID locationId, UUID userId, boolean favorite) {
+        Location location = getEntityById(locationId);
+        if (!Objects.equals(location.getUser().getId(), userId)) {
+            throw new AccessDeniedException("You are not authorized to modify this location");
+        }
+        location.setFavorite(favorite);
+        locationRepository.save(location);
+    }
+
+    @Override
+    @Transactional
+    public void removeFromFavorite(UUID locationId, UUID userId) {
+        setFavorite(locationId, userId, false);
+    }
+
+    @Override
+    public List<LocationDto> getFavoritesByUserId(UUID userId) {
+        List<Location> locations = locationRepository.findByUserIdAndFavoriteTrueOrderByCreatedAtDesc(userId);
         return locationMapper.toDtoList(locations);
     }
 
     @Override
-    public List<LocationDto> getLocationsSortedByNameAsc() {
-        List<Location> locations = locationRepository.findAllByOrderByNameAsc();
+    public List<LocationDto> getByUserIdSortedByFavorite(UUID userId) {
+        List<Location> locations = locationRepository.findByUserIdOrderByFavoriteDescCreatedAtDesc(userId);
         return locationMapper.toDtoList(locations);
     }
 
     @Override
-    public List<LocationDto> getLocationsSortedByNameDesc() {
-        List<Location> locations = locationRepository.findAllByOrderByNameDesc();
+    public List<LocationDto> getByUserIdSortedByDate(UUID userId) {
+        List<Location> locations = locationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        return locationMapper.toDtoList(locations);
+    }
+
+    @Override
+    public List<LocationDto> getByUserIdSortedByNameAsc(UUID userId) {
+        List<Location> locations = locationRepository.findByUserIdOrderByNameAsc(userId);
+        return locationMapper.toDtoList(locations);
+    }
+
+    @Override
+    public List<LocationDto> getByUserIdSortedByNameDesc(UUID userId) {
+        List<Location> locations = locationRepository.findByUserIdOrderByNameDesc(userId);
         return locationMapper.toDtoList(locations);
     }
 

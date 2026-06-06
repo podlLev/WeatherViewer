@@ -11,16 +11,10 @@ import java.util.UUID;
 @Setter
 @ToString
 @Accessors(chain = true)
-public class AddLocationDto {
-
-    private String name;
-
-    private Double latitude;
-
-    private Double longitude;
+public class UpdateUserRoleDto {
 
     private UUID userId;
 
-    private Boolean favorite;
+    private String newRole;
 
 }

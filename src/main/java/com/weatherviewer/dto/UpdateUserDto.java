@@ -5,22 +5,18 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @ToString
 @Accessors(chain = true)
-public class AddLocationDto {
+public class UpdateUserDto {
 
-    private String name;
+    private String email;
 
-    private Double latitude;
+    private String firstName;
 
-    private Double longitude;
+    private String lastName;
 
-    private UUID userId;
-
-    private Boolean favorite;
+    private String password;
 
 }
