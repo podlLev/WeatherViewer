@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog logicalFilePath="liquibase/changelog.xml" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="ct-type-user-status" author="Pidlisnyi Lev">
+        <sql dbms="postgresql">
+            CREATE TYPE user_status AS ENUM ('PENDING','ACTIVE','BLOCKED','DELETED','EXPIRED');
+        </sql>
+    </changeSet>
+
+    <changeSet id="ct-type-role" author="Pidlisnyi Lev">
+        <sql dbms="postgresql">
+            CREATE TYPE role AS ENUM ('USER','ADMIN');
+        </sql>
+    </changeSet>
+
+    <changeSet id="ct-user" author="Pidlisnyi Lev">
+        <createTable tableName="users">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" unique="true"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="user_status"/>
+            <column name="role" type="role"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="alter-locations-add-user-and-favorite" author="Pidlisnyi Lev">
+        <addColumn tableName="locations">
+            <column name="is_favorite" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="locations">
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="locations"
+                                 baseColumnNames="user_id"
+                                 constraintName="fk_locations_user"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
