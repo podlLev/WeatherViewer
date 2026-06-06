@@ -5,24 +5,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface LocationRepository extends JpaRepository<Location, UUID> {
 
-    Optional<Location> findByLatitudeAndLongitude(Double latitude, Double longitude);
+    List<Location> findByUserId(UUID userId);
+    List<Location> findByUserIdOrderByCreatedAtDesc(UUID userId);
+    Location findByLatitudeAndLongitudeAndUserId(Double latitude, Double longitude, UUID userId);
 
-    boolean existsByName(String name);
+    void deleteByUserId(UUID userId);
+    void deleteByNameAndUserId(String name,UUID userId);
 
-    void deleteByName(String name);
+    boolean existsByNameAndUserId(String name, UUID userId);
+    boolean existsByLatitudeAndLongitudeAndUserId(Double latitude, Double longitude, UUID userId);
 
-    boolean existsByLatitudeAndLongitude(Double latitude, Double longitude);
-
-    List<Location> findAllByOrderByCreatedAtDesc();
-
-    List<Location> findAllByOrderByNameAsc();
-
-    List<Location> findAllByOrderByNameDesc();
+    List<Location> findByUserIdAndFavoriteTrueOrderByCreatedAtDesc(UUID userId);
+    List<Location> findByUserIdOrderByFavoriteDescCreatedAtDesc(UUID userId);
+    List<Location> findByUserIdOrderByNameAsc(UUID userId);
+    List<Location> findByUserIdOrderByNameDesc(UUID userId);
 
 }

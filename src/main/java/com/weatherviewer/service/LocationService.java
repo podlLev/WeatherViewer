@@ -17,20 +17,32 @@ public interface LocationService {
 
     LocationDto getById(UUID id);
 
-    LocationDto getByCoordinates(Double latitude, Double longitude);
+    List<LocationDto> getByUserId(UUID userId);
+
+    LocationDto getByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId);
 
     void delete(UUID id);
 
-    void deleteByName(String name);
+    void deleteByUserId(UUID userId);
 
-    boolean existsByName(String name);
+    void deleteByNameAndUserId(String name, UUID userId);
 
-    boolean existsByCoordinates(Double latitude, Double longitude);
+    boolean existsByNameAndUserId(String name, UUID userId);
 
-    List<LocationDto> getLocationsSortedByDate();
+    boolean existsByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId);
 
-    List<LocationDto> getLocationsSortedByNameAsc();
+    void addToFavorite(UUID locationId, UUID userId);
 
-    List<LocationDto> getLocationsSortedByNameDesc();
+    void removeFromFavorite(UUID locationId, UUID userId);
+
+    List<LocationDto> getFavoritesByUserId(UUID userId);
+
+    List<LocationDto> getByUserIdSortedByFavorite(UUID userId);
+
+    List<LocationDto> getByUserIdSortedByDate(UUID userId);
+
+    List<LocationDto> getByUserIdSortedByNameAsc(UUID userId);
+
+    List<LocationDto> getByUserIdSortedByNameDesc(UUID userId);
 
 }

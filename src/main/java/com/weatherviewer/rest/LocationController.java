@@ -28,7 +28,8 @@ public class LocationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UUID addLocation(@RequestBody @Valid AddLocationDto addLocationDto) {
-        log.info("Request: addLocation called with name={}", addLocationDto.getName());
+        log.info("Request: addLocation called with name={} for userId={}",
+                addLocationDto.getName(), addLocationDto.getUserId());
         return locationService.add(addLocationDto);
     }
 
@@ -44,10 +45,10 @@ public class LocationController {
         return locationService.getById(id);
     }
 
-    @GetMapping("/search")
-    public LocationDto getLocationByCoordinates(@RequestParam Double latitude, @RequestParam Double longitude) {
-        log.info("Request: getLocationByCoordinates called with latitude={}, longitude={}", latitude, longitude);
-        return locationService.getByCoordinates(latitude, longitude);
+    @GetMapping("/user/{id}")
+    public List<LocationDto> getLocationsByUserId(@PathVariable UUID id) {
+        log.info("Request: getLocationsByUserId called for userId={}", id);
+        return locationService.getByUserId(id);
     }
 
     @DeleteMapping("/{id}")
@@ -58,37 +59,67 @@ public class LocationController {
         log.info("Location deleted successfully: id={}", id);
     }
 
-    @DeleteMapping("/name/{name}")
+    @DeleteMapping("/user/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteLocationByName(@PathVariable @NotBlank String name) {
-        log.info("Request: deleteLocationByName called for name={}", name);
-        locationService.deleteByName(name);
-        log.info("Locations deleted successfully matching name={}", name);
+    public void deleteLocationsByUserId(@PathVariable UUID id) {
+        log.info("Request: deleteLocationsByUserId called for userId={}", id);
+        locationService.deleteByUserId(id);
+        log.info("All locations deleted for userId={}", id);
     }
 
-    @GetMapping("/exists/name/{name}")
-    public boolean existsByName(@PathVariable String name) {
-        log.info("Request: existsByName called with name={}", name);
-        return locationService.existsByName(name);
+    @DeleteMapping("/{name}/user/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteLocationByNameAndUserId(@PathVariable UUID id, @PathVariable @NotBlank String name) {
+        log.info("Request: deleteLocationByNameAndUserId called for userId={} and name={}", id, name);
+        locationService.deleteByNameAndUserId(name, id);
+        log.info("Location deleted successfully: name={} for userId={}", name, id);
     }
 
-    @GetMapping("/exists/coordinates")
-    public boolean existsByCoordinates(@RequestParam Double latitude, @RequestParam Double longitude) {
-        log.info("Request: existsByCoordinates called with latitude={}, longitude={}", latitude, longitude);
-        return locationService.existsByCoordinates(latitude, longitude);
+    @GetMapping("/exists/name/{name}/user/{userId}")
+    public boolean existsByNameAndUserId(@PathVariable String name, @PathVariable UUID userId) {
+        log.info("Request: existsByNameAndUserId called with name={} and userId={}", name, userId);
+        return locationService.existsByNameAndUserId(name, userId);
     }
 
-    @GetMapping("/sorted")
-    public List<LocationDto> getSortedLocations(
+    @GetMapping("/exists/coordinates/user/{userId}")
+    public boolean existsByCoordinatesAndUserId(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @PathVariable UUID userId) {
+
+        log.info("Request: existsByCoordinatesAndUserId called with latitude={}, longitude={}, userId={}",
+                latitude, longitude, userId);
+        return locationService.existsByCoordinatesAndUserId(latitude, longitude, userId);
+    }
+
+    @PostMapping("/{id}/favorite")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addToFavorite(@PathVariable UUID id, @RequestParam UUID userId) {
+        log.info("Request: addToFavorite called for locationId={} and userId={}", id, userId);
+        locationService.addToFavorite(id, userId);
+    }
+
+    @DeleteMapping("/{id}/favorite")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFromFavorite(@PathVariable UUID id, @RequestParam UUID userId) {
+        log.info("Request: removeFromFavorite called for locationId={} and userId={}", id, userId);
+        locationService.removeFromFavorite(id, userId);
+    }
+
+    @GetMapping("/user/{userId}/locations")
+    public List<LocationDto> getSortedLocationsByUserId(
+            @PathVariable UUID userId,
             @RequestParam(required = false, defaultValue = "date")
-            @Parameter(description = "Sort options: date, nameAsc, nameDesc") String sort) {
+            @Parameter(description = "Sort options: date, nameAsc, nameDesc, favoriteFirst, favoritesOnly") String sort) {
 
-        log.info("Request: getSortedLocations called with sort={}", sort);
+        log.info("Request: getSortedLocationsByUserId called for userId={}, sort={}", userId, sort);
 
         return switch (sort.toLowerCase()) {
-            case "nameasc" -> locationService.getLocationsSortedByNameAsc();
-            case "namedesc" -> locationService.getLocationsSortedByNameDesc();
-            default -> locationService.getLocationsSortedByDate();
+            case "nameasc" -> locationService.getByUserIdSortedByNameAsc(userId);
+            case "namedesc" -> locationService.getByUserIdSortedByNameDesc(userId);
+            case "favoritefirst" -> locationService.getByUserIdSortedByFavorite(userId);
+            case "favoritesonly" -> locationService.getFavoritesByUserId(userId);
+            default -> locationService.getByUserIdSortedByDate(userId);
         };
     }
 

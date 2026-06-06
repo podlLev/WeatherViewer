@@ -5,6 +5,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @ToString
@@ -16,5 +18,9 @@ public class AddLocationDto {
     private Double latitude;
 
     private Double longitude;
+
+    private UUID userId;
+
+    private Boolean favorite;
 
 }
