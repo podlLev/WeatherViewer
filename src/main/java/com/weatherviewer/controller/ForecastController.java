@@ -14,10 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Controller
@@ -33,17 +30,7 @@ public class ForecastController {
     public String getForecast(@RequestParam("lat") double latitude,
                               @RequestParam("lon") double longitude,
                               @AuthenticationPrincipal SecUser user,
-                              Model model,
-                              RedirectAttributes redirectAttributes) {
-
-        if (user == null) {
-            log.info("Anonymous user tried to access forecast at lat={}, lon={}", latitude, longitude);
-            redirectAttributes.addFlashAttribute("errorMessage", "You need to sign in first!");
-            String target = "/forecast?lat=" + latitude + "&lon=" + longitude;
-            String encodedTarget = URLEncoder.encode(target, StandardCharsets.UTF_8);
-            return "redirect:/sign-in?redirect=" + encodedTarget;
-        }
-
+                              Model model) {
         log.info("Fetching forecast for user={} at lat={}, lon={}", user.getUsername(), latitude, longitude);
 
         LocationDto locationDto = locationService.getByCoordinatesAndUserId(latitude, longitude, user.getId());

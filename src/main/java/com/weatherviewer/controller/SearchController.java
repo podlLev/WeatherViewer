@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,16 +36,7 @@ public class SearchController {
 
     @GetMapping("/search")
     public String searchResults(@RequestParam("q") String query, Model model,
-                                @AuthenticationPrincipal SecUser user,
-                                RedirectAttributes redirectAttributes) {
-        if (user == null) {
-            log.info("Anonymous user attempted search with query='{}'", query);
-            redirectAttributes.addFlashAttribute("errorMessage", "You need to sign in first!");
-            String target = "/search?q=" + query;
-            String encodedTarget = URLEncoder.encode(target, StandardCharsets.UTF_8);
-            return "redirect:/sign-in?redirect=" + encodedTarget;
-        }
-
+                                @AuthenticationPrincipal SecUser user) {
         log.info("User '{}' is searching for locations with query='{}'", user.getUsername(), query);
         List<GeoLocationDto> foundLocations = weatherApiService.getCitiesByName(query);
 
