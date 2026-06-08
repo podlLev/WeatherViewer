@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/common :: commonHead('Weather Viewer - Error')}"></head>
+
+<th:block th:fragment="headContent"></th:block>
+
+<th:block th:fragment="bodyContent">
+    <div class="container text-center mt-5">
+        <h1 class="display-4">Oops! Something Went Wrong</h1>
+        <p class="lead">We're sorry, but an unexpected error has occurred. Please try again later.</p>
+        <a class="btn btn-primary" th:href="@{/}">Go to Home</a>
+    </div>
+</th:block>
+
+</html>
