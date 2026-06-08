@@ -21,6 +21,7 @@ public class SecUser implements UserDetails {
     private final String password;
     private final Set<SimpleGrantedAuthority> authorities;
     private final Boolean isActive;
+    private final String fullName;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -63,7 +64,8 @@ public class SecUser implements UserDetails {
                 user.getEmail(),
                 user.getPassword(),
                 user.getRole().getAuthority(),
-                user.getStatus() == UserStatus.ACTIVE
+                user.getStatus() == UserStatus.ACTIVE,
+                user.getFullName()
         );
     }
 

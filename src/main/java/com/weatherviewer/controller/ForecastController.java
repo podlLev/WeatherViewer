@@ -2,10 +2,8 @@ package com.weatherviewer.controller;
 
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
-import com.weatherviewer.model.User;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
-import com.weatherviewer.service.UserService;
 import com.weatherviewer.service.WeatherApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +22,6 @@ public class ForecastController {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
-    private final UserService userService;
 
     @GetMapping("/forecast")
     public String getForecast(@RequestParam("lat") double latitude,
@@ -43,8 +40,7 @@ public class ForecastController {
         model.addAttribute("hourlyForecast", hourlyForecast);
         model.addAttribute("dailyForecast", dailyForecast);
 
-        User userEntity = userService.getEntityById(user.getId());
-        model.addAttribute("login", userEntity.getFullName());
+        model.addAttribute("login", user.getFullName());
 
         return "forecast";
     }

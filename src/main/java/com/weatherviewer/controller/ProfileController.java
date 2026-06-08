@@ -29,7 +29,7 @@ public class ProfileController {
 
         User userEntity = userService.getEntityById(user.getId());
 
-        model.addAttribute("login", userEntity.getFullName());
+        model.addAttribute("login", user.getFullName());
         model.addAttribute("user", userEntity);
         return "profile";
     }

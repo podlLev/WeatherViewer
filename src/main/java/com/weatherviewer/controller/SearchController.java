@@ -2,10 +2,8 @@ package com.weatherviewer.controller;
 
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.GeoLocationDto;
-import com.weatherviewer.model.User;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
-import com.weatherviewer.service.UserService;
 import com.weatherviewer.service.WeatherApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +29,6 @@ public class SearchController {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
-    private final UserService userService;
     private final Validator validator;
 
     @GetMapping("/search")
@@ -44,8 +41,7 @@ public class SearchController {
         model.addAttribute("addLocation", new AddLocationDto());
         log.info("Search returned {} results for user '{}'", foundLocations.size(), user.getUsername());
 
-        User userEntity = userService.getEntityById(user.getId());
-        model.addAttribute("login", userEntity.getFullName());
+        model.addAttribute("login", user.getFullName());
         return "search";
     }
 

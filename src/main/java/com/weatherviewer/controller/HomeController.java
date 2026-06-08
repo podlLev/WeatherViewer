@@ -2,10 +2,8 @@ package com.weatherviewer.controller;
 
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
-import com.weatherviewer.model.User;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
-import com.weatherviewer.service.UserService;
 import com.weatherviewer.service.WeatherApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +27,6 @@ public class HomeController {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
-    private final UserService userService;
 
     @GetMapping("/")
     public String home(Model model, @AuthenticationPrincipal SecUser user,
@@ -56,9 +53,7 @@ public class HomeController {
             log.info("Weather data prepared for {} locations", locationWeatherMap.size());
         }
 
-        User userEntity = userService.getEntityById(user.getId());
-
-        model.addAttribute("login", userEntity.getFullName());
+        model.addAttribute("login", user.getFullName());
         model.addAttribute("sort", sort);
         return "home";
     }
@@ -94,12 +89,6 @@ public class HomeController {
         locationService.removeFromFavorite(id, user.getId());
         redirectAttributes.addFlashAttribute("successMessage", "Location removed from favorites");
         return "redirect:/?sort=" + sort;
-    }
-
-    @GetMapping("/error")
-    public String error() {
-        log.warn("Error page requested");
-        return "error";
     }
 
 }
