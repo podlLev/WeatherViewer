@@ -1,31 +1,31 @@
 package com.weatherviewer.security;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.RedirectStrategy;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
-
-    private final RedirectStrategy redirectStrategy;
+public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+                                        Authentication authentication) throws IOException, ServletException {
 
-        String redirectUrl = Optional.ofNullable(request.getParameter("redirect"))
-                .filter(url -> !url.isEmpty())
-                .orElse("/");
+        String redirectUrl = request.getParameter("redirect");
+        if (redirectUrl != null && !redirectUrl.isBlank()) {
+            clearAuthenticationAttributes(request);
+            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            return;
+        }
 
-        redirectStrategy.sendRedirect(request, response, redirectUrl);
+        super.onAuthenticationSuccess(request, response, authentication);
     }
 
 }

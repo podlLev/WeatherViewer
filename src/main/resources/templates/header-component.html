@@ -1,0 +1,29 @@
+<header class="container-fluid p-3 mt-2 mb-2">
+    <div class="container">
+        <div class="row justify-content-between align-items-center">
+            <div class="col d-flex">
+                <a class="text-decoration-none d-inline-flex align-items-center" href="/" th:href="@{/}">
+                    <img src="/images/weather-app.png" alt="Weather Icon" style="height: 32px; margin-right: 8px;">
+                    <h4 class="m-0">Weather Viewer</h4>
+                </a>
+            </div>
+            <div class="col d-flex">
+                <div th:replace="~{search-component}"></div>
+            </div>
+            <div class="col d-flex justify-content-end" th:classappend="${login}? 'd-none'">
+                <a class="btn btn-outline-primary px-3" href="sign-in" role="button" th:href="@{/sign-in}">Sign in</a>
+                <a class="btn btn-primary px-3 ms-2" href="sign-up" role="button" th:href="@{/sign-up}">Sign up</a>
+            </div>
+            <div class="col d-flex justify-content-end align-items-center" th:classappend="!(${login})? 'd-none' : ''">
+                <a th:href="@{/profile}" class="text-dark text-decoration-none fw-bold d-flex align-items-center">
+                    <i class="bi bi-person-circle fs-3 me-2"></i>
+                    <span th:text="${login}">Username</span>
+                </a>
+                <form method="post" th:action="@{/sign-out}">
+                    <button class="btn btn-outline-primary px-3 ms-4" type="submit">Sign out</button>
+                </form>
+            </div>
+            <div th:replace="~{fragments/alerts :: alertToasts(${successMessage}, ${errorMessage}, ${errorMessages})}"></div>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+.toast-body,
+.toast-header {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    color: #222;
+}
+
+.toast-header strong {
+    font-weight: 700;
+}
+
+.toast {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+}
+
+.toast-body ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}

@@ -29,7 +29,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/sign-in", "/sign-up", "/sign-in-failure", "/search", "/forecast", "/css/**", "/images/**", "/js/**").permitAll()
+                        .requestMatchers("/sign-in", "/sign-up", "/sign-in-failure", "/css/**", "/images/**", "/js/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .passwordParameter("password")
                         .successHandler(customAuthSuccessHandler)
                         .failureHandler(customAuthFailureHandler)
+                        .defaultSuccessUrl("/", false)
                         .permitAll()
                 )
                 .logout(logout -> logout

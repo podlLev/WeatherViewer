@@ -5,7 +5,6 @@ import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.exception.notfound.LocationNotFoundException;
 import com.weatherviewer.mapper.LocationMapper;
 import com.weatherviewer.model.Location;
-import com.weatherviewer.model.User;
 import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.service.LocationService;
 import lombok.RequiredArgsConstructor;
@@ -65,31 +64,19 @@ public class LocationServiceImpl implements LocationService {
     @Transactional
     public void delete(UUID id) {
         Location location = getEntityById(id);
-        User user = location.getUser();
-        if (user != null && user.getLocations() != null) {
-            user.getLocations().remove(location);
-        }
         locationRepository.delete(location);
     }
 
     @Override
     @Transactional
     public void deleteByUserId(UUID userId) {
-        List<Location> locations = locationRepository.findByUserId(userId);
-        for (Location loc : locations) {
-            delete(loc.getId());
-        }
+        locationRepository.deleteByUserId(userId);
     }
 
     @Override
     @Transactional
     public void deleteByNameAndUserId(String name, UUID userId) {
-        List<Location> locations = locationRepository.findByUserId(userId).stream()
-                .filter(loc -> name.equals(loc.getName()))
-                .toList();
-        for (Location loc : locations) {
-            delete(loc.getId());
-        }
+        locationRepository.deleteByNameAndUserId(name, userId);
     }
 
     @Override

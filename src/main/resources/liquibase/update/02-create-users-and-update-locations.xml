@@ -17,7 +17,7 @@
 
     <changeSet id="ct-user" author="Pidlisnyi Lev">
         <createTable tableName="users">
-            <column name="id" type="UUID">
+            <column name = "id" type="UUID">
                 <constraints nullable="false" primaryKey="true" unique="true"/>
             </column>
             <column name="first_name" type="VARCHAR(255)"/>
@@ -34,27 +34,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="alter-locations-add-user-and-favorite" author="Pidlisnyi Lev">
-        <addColumn tableName="locations">
-            <column name="is_favorite" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-
-        <addColumn tableName="locations">
-            <column name="user_id" type="UUID">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-
-        <addForeignKeyConstraint baseTableName="locations"
-                                 baseColumnNames="user_id"
-                                 constraintName="fk_locations_user"
-                                 referencedTableName="users"
-                                 referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
     </changeSet>
 
 </databaseChangeLog>
