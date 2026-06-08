@@ -11,6 +11,12 @@
             <column name="name" type="VARCHAR(255)"/>
             <column name="latitude" type="DECIMAL"/>
             <column name="longitude" type="DECIMAL"/>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="favorite" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
