@@ -1,6 +1,7 @@
 package com.weatherviewer.rest;
 
 import com.weatherviewer.dto.CreateUserDto;
+import com.weatherviewer.dto.UpdateUserDto;
 import com.weatherviewer.dto.UpdateUserRoleDto;
 import com.weatherviewer.dto.UserDto;
 import com.weatherviewer.service.UserService;
@@ -50,6 +51,13 @@ public class UserController {
     public UserDto getUserByEmail(@RequestParam @Email String email) {
         log.info("Request: getUserByEmail called with email={}", email);
         return userService.getByEmail(email);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('users:write')")
+    public UserDto updateUser(@PathVariable UUID id, @RequestBody @Valid UpdateUserDto dto) {
+        log.info("Request: updateUser called with id={}", id);
+        return userService.update(id, dto);
     }
 
     @DeleteMapping("/{id}")

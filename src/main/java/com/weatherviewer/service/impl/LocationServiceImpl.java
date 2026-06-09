@@ -39,7 +39,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Location getEntityById(UUID id) {
         return locationRepository.findById(id)
-                .orElseThrow(() -> new LocationNotFoundException("Location not found"));
+                .orElseThrow(() -> new LocationNotFoundException("Location not found by id: " + id));
     }
 
     @Override

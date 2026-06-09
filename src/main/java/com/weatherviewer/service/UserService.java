@@ -23,7 +23,7 @@ public interface UserService {
 
     UserDto getByEmail(String email);
 
-    void update(UUID id, UpdateUserDto updateUserDto);
+    UserDto update(UUID id, UpdateUserDto updateUserDto);
 
     boolean existsByEmail(String email);
 

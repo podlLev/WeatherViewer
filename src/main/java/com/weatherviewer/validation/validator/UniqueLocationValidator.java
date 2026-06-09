@@ -17,7 +17,11 @@ public class UniqueLocationValidator implements ConstraintValidator<UniqueLocati
 
     @Override
     public boolean isValid(AddLocationDto addLocationDto, ConstraintValidatorContext context) {
-        if (addLocationDto == null || addLocationDto.getName() == null || addLocationDto.getUserId() == null) {
+        if (addLocationDto == null
+                || addLocationDto.getName() == null
+                || addLocationDto.getUserId() == null
+                || addLocationDto.getLatitude() == null
+                || addLocationDto.getLongitude() == null) {
             return false;
         }
         boolean exists = locationService.existsByCoordinatesAndUserId(
