@@ -4,6 +4,9 @@ import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.validation.annotation.Latitude;
+import com.weatherviewer.validation.annotation.Longitude;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +26,7 @@ public class WeatherController {
     private final WeatherApiService weatherApiService;
 
     @GetMapping("/location")
-    public WeatherDto getWeatherByLocation(@RequestBody LocationDto locationDto) {
+    public WeatherDto getWeatherByLocation(@RequestBody @Valid LocationDto locationDto) {
         log.info("Request: getWeatherByLocation called for location name={} ", locationDto.getName());
         return weatherApiService.getWeatherByLocation(locationDto);
     }
@@ -36,8 +39,8 @@ public class WeatherController {
 
     @GetMapping("/coord")
     public WeatherDto getWeatherByCoordinates(
-            @RequestParam double latitude,
-            @RequestParam double longitude) {
+            @RequestParam @Latitude double latitude,
+            @RequestParam @Longitude double longitude) {
         log.info("Request: getWeatherByCoordinates called with latitude={}, longitude={}", latitude, longitude);
         return weatherApiService.getWeatherByCoordinates(latitude, longitude);
     }
@@ -50,8 +53,8 @@ public class WeatherController {
 
     @GetMapping("/daily/coord")
     public List<WeatherDto> getDailyForecastByCoordinates(
-            @RequestParam double latitude,
-            @RequestParam double longitude) {
+            @RequestParam @Latitude double latitude,
+            @RequestParam @Longitude double longitude) {
         log.info("Request: getDailyForecastByCoordinates called with latitude={}, longitude={}", latitude, longitude);
         return weatherApiService.getDailyForecastByCoordinates(latitude, longitude);
     }
@@ -64,8 +67,8 @@ public class WeatherController {
 
     @GetMapping("/hourly/coord")
     public List<WeatherDto> getHourlyForecastByCoordinates(
-            @RequestParam double latitude,
-            @RequestParam double longitude) {
+            @RequestParam @Latitude double latitude,
+            @RequestParam @Longitude double longitude) {
         log.info("Request: getHourlyForecastByCoordinates called with latitude={}, longitude={}", latitude, longitude);
         return weatherApiService.getHourlyForecastByCoordinates(latitude, longitude);
     }

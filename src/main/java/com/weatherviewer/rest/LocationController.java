@@ -3,6 +3,8 @@ package com.weatherviewer.rest;
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.service.LocationService;
+import com.weatherviewer.validation.annotation.Latitude;
+import com.weatherviewer.validation.annotation.Longitude;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -76,15 +78,15 @@ public class LocationController {
     }
 
     @GetMapping("/exists/name/{name}/user/{userId}")
-    public boolean existsByNameAndUserId(@PathVariable String name, @PathVariable UUID userId) {
+    public boolean existsByNameAndUserId(@PathVariable @NotBlank String name, @PathVariable UUID userId) {
         log.info("Request: existsByNameAndUserId called with name={} and userId={}", name, userId);
         return locationService.existsByNameAndUserId(name, userId);
     }
 
     @GetMapping("/exists/coordinates/user/{userId}")
     public boolean existsByCoordinatesAndUserId(
-            @RequestParam Double latitude,
-            @RequestParam Double longitude,
+            @RequestParam @Latitude double latitude,
+            @RequestParam @Longitude double longitude,
             @PathVariable UUID userId) {
 
         log.info("Request: existsByCoordinatesAndUserId called with latitude={}, longitude={}, userId={}",
