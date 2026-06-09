@@ -3,9 +3,7 @@ package com.weatherviewer.dto;
 import com.weatherviewer.model.enums.Role;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.validation.annotation.Password;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -25,13 +23,17 @@ public class UserDto {
     private UUID id;
 
     @NotBlank(message = "Username cannot be blank")
+    @Size(max = 100, message = "Username cannot exceed 100 characters")
     private String username;
 
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email cannot be blank")
+    @Size(max = 150, message = "Email cannot exceed 150 characters")
     private String email;
 
     @Password
+    @NotBlank(message = "Password cannot be blank")
+    @Size(max = 72, message = "Password cannot exceed 72 characters")
     private String password;
 
     @NotNull(message = "Status cannot be null")
