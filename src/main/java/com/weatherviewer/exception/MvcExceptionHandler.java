@@ -3,10 +3,12 @@ package com.weatherviewer.exception;
 import com.weatherviewer.controller.*;
 import com.weatherviewer.exception.notfound.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @ControllerAdvice(assignableTypes = {
@@ -37,6 +39,23 @@ public class MvcExceptionHandler {
     public String handleMissingParam(MissingServletRequestParameterException ex, RedirectAttributes ra) {
         log.warn("Missing request parameter: {}", ex.getParameterName());
         ra.addFlashAttribute("errorMessage", "Invalid request");
+        return "redirect:/";
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public String handleMvcMethodValidationException(HandlerMethodValidationException ex, RedirectAttributes ra) {
+        String errorMessage = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream())
+                .map(org.springframework.context.MessageSourceResolvable::getDefaultMessage)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .collect(java.util.stream.Collectors.joining(", "));
+        if (errorMessage.isEmpty()) {
+            errorMessage = "Invalid input data provided";
+        }
+
+        log.warn("Validation failures in MVC controller parameters: {}", errorMessage);
+        ra.addFlashAttribute("errorMessage", errorMessage);
         return "redirect:/";
     }
 

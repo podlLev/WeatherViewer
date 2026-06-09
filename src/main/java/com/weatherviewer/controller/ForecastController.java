@@ -5,6 +5,8 @@ import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.validation.annotation.Latitude;
+import com.weatherviewer.validation.annotation.Longitude;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,8 +26,8 @@ public class ForecastController {
     private final LocationService locationService;
 
     @GetMapping("/forecast")
-    public String getForecast(@RequestParam("lat") double latitude,
-                              @RequestParam("lon") double longitude,
+    public String getForecast(@RequestParam("lat") @Latitude double latitude,
+                              @RequestParam("lon") @Longitude double longitude,
                               @AuthenticationPrincipal SecUser user,
                               Model model) {
         log.info("Fetching forecast for user={} at lat={}, lon={}", user.getUsername(), latitude, longitude);

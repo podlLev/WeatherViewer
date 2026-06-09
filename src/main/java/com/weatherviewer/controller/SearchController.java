@@ -5,6 +5,7 @@ import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -46,7 +47,7 @@ public class SearchController {
     }
 
     @PostMapping("/search/add")
-    public String addLocation(@ModelAttribute("addLocation") AddLocationDto addLocationDto,
+    public String addLocation(@Valid @ModelAttribute("addLocation") AddLocationDto addLocationDto,
                               @AuthenticationPrincipal SecUser secUser,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {

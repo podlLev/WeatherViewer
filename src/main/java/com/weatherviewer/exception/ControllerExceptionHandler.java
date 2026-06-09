@@ -12,10 +12,14 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice(assignableTypes = {
         LocationController.class,
@@ -44,6 +48,22 @@ public class ControllerExceptionHandler {
                 .toList();
         log.info("Validation errors: {}", errors);
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errors);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleMethodValidationException(HandlerMethodValidationException ex) {
+        Map<String, String> errors = ex.getParameterValidationResults().stream()
+                .collect(Collectors.toMap(
+                        result -> result.getMethodParameter().getParameterName(),
+                        result -> {
+                            String message = result.getResolvableErrors().get(0).getDefaultMessage();
+                            return Objects.requireNonNullElse(message, "Invalid value");
+                        },
+                        (existing, replacement) -> existing
+                ));
+
+        log.info("Parameter validation errors: {}", errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
     @ExceptionHandler(ExternalHttpCallException.class)

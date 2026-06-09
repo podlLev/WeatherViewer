@@ -4,6 +4,7 @@ import com.weatherviewer.dto.CreateUserDto;
 import com.weatherviewer.dto.UpdateUserDto;
 import com.weatherviewer.dto.UpdateUserRoleDto;
 import com.weatherviewer.dto.UserDto;
+import com.weatherviewer.exception.EmailAlreadyInUseException;
 import com.weatherviewer.exception.notfound.UserNotFoundException;
 import com.weatherviewer.mapper.UserMapper;
 import com.weatherviewer.model.User;
@@ -45,7 +46,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getEntityById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found by id"));
+                .orElseThrow(() -> new UserNotFoundException("User not found by id: " + id));
     }
 
     @Override
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getEntityByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found by email"));
+                .orElseThrow(() -> new UserNotFoundException("User not found by email: " + email));
     }
 
     @Override
@@ -67,8 +68,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void update(UUID id, UpdateUserDto updateUserDto) {
+    @Transactional
+    public UserDto update(UUID id, UpdateUserDto updateUserDto) {
         User user = getEntityById(id);
+
+        if (!user.getEmail().equals(updateUserDto.getEmail())
+                && existsByEmail(updateUserDto.getEmail())) {
+            throw new EmailAlreadyInUseException(updateUserDto.getEmail());
+        }
 
         user.setEmail(updateUserDto.getEmail())
                 .setFirstName(updateUserDto.getFirstName())
@@ -77,7 +84,7 @@ public class UserServiceImpl implements UserService {
         if (updateUserDto.getPassword() != null && !updateUserDto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(updateUserDto.getPassword()));
         }
-        userRepository.save(user);
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -98,7 +105,6 @@ public class UserServiceImpl implements UserService {
         Role role = Role.getInstance(dto.getNewRole());
 
         user.setRole(role);
-        userRepository.save(user);
     }
 
 }
