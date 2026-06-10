@@ -4,13 +4,13 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
     <changeSet id="ct-type-user-status" author="Pidlisnyi Lev">
-        <sql dbms="postgresql">
+        <sql>
             CREATE TYPE user_status AS ENUM ('PENDING','ACTIVE','BLOCKED','DELETED','EXPIRED');
         </sql>
     </changeSet>
 
     <changeSet id="ct-type-role" author="Pidlisnyi Lev">
-        <sql dbms="postgresql">
+        <sql>
             CREATE TYPE role AS ENUM ('USER','ADMIN');
         </sql>
     </changeSet>
