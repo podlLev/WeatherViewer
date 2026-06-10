@@ -62,6 +62,12 @@ class AddLocationDtoTest {
     }
 
     @Test
+    void latitude_null_failsValidation() {
+        AddLocationDto dto = validDto().setLatitude(null);
+        assertFieldHasViolation(validator, dto, "latitude");
+    }
+
+    @Test
     void latitude_tooLow_failsValidation() {
         AddLocationDto dto = validDto().setLatitude(-91.0);
         assertFieldHasViolation(validator, dto, "latitude");
@@ -77,6 +83,12 @@ class AddLocationDtoTest {
     void latitude_atBoundary_passesValidation() {
         assertNoViolations(validator, validDto().setLatitude(-90.0));
         assertNoViolations(validator, validDto().setLatitude(90.0));
+    }
+
+    @Test
+    void longitude_null_failsValidation() {
+        AddLocationDto dto = validDto().setLongitude(null);
+        assertFieldHasViolation(validator, dto, "longitude");
     }
 
     @Test
