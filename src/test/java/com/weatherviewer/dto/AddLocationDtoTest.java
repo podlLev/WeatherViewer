@@ -1,6 +1,5 @@
 package com.weatherviewer.dto;
 
-import com.weatherviewer.dto.helper.ValidatorTestFactory;
 import com.weatherviewer.validation.validator.UniqueLocationValidator;
 import jakarta.validation.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.weatherviewer.dto.helper.ValidatorTestFactory.*;
 
 class AddLocationDtoTest {
 
@@ -16,7 +15,7 @@ class AddLocationDtoTest {
 
     @BeforeEach
     void setUp() {
-        validator = ValidatorTestFactory.skipValidator(UniqueLocationValidator.class);
+        validator = skipValidator(UniqueLocationValidator.class);
     }
 
     private AddLocationDto validDto() {
@@ -29,86 +28,85 @@ class AddLocationDtoTest {
 
     @Test
     void valid_dto_hasNoViolations() {
-        assertThat(validator.validate(validDto())).isEmpty();
+        assertNoViolations(validator, validDto());
     }
 
     @Test
     void name_null_failsValidation() {
         AddLocationDto dto = validDto().setName(null);
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("name"));
+        assertFieldHasViolation(validator, dto, "name");
     }
 
     @Test
     void name_whitespaceOnly_failsValidation() {
         AddLocationDto dto = validDto().setName("   ");
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("name"));
+        assertFieldHasViolation(validator, dto, "name");
+    }
+
+    @Test
+    void name_exceedsMaxLength_failsValidation() {
+        AddLocationDto dto = validDto().setName("A".repeat(101));
+        assertFieldHasViolation(validator, dto, "name");
     }
 
     @Test
     void name_exactlyMaxLength_passesValidation() {
         AddLocationDto dto = validDto().setName("A".repeat(100));
-        assertThat(validator.validate(dto)).isEmpty();
+        assertNoViolations(validator, dto);
     }
 
     @Test
     void name_oneCharacter_passesValidation() {
         AddLocationDto dto = validDto().setName("A");
-        assertThat(validator.validate(dto)).isEmpty();
+        assertNoViolations(validator, dto);
     }
 
     @Test
     void latitude_tooLow_failsValidation() {
         AddLocationDto dto = validDto().setLatitude(-91.0);
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("latitude"));
+        assertFieldHasViolation(validator, dto, "latitude");
     }
 
     @Test
     void latitude_tooHigh_failsValidation() {
         AddLocationDto dto = validDto().setLatitude(91.0);
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("latitude"));
+        assertFieldHasViolation(validator, dto, "latitude");
     }
 
     @Test
     void latitude_atBoundary_passesValidation() {
-        assertThat(validator.validate(validDto().setLatitude(-90.0))).isEmpty();
-        assertThat(validator.validate(validDto().setLatitude(90.0))).isEmpty();
+        assertNoViolations(validator, validDto().setLatitude(-90.0));
+        assertNoViolations(validator, validDto().setLatitude(90.0));
     }
 
     @Test
     void longitude_tooLow_failsValidation() {
         AddLocationDto dto = validDto().setLongitude(-181.0);
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("longitude"));
+        assertFieldHasViolation(validator, dto, "longitude");
     }
 
     @Test
     void longitude_tooHigh_failsValidation() {
         AddLocationDto dto = validDto().setLongitude(181.0);
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("longitude"));
+        assertFieldHasViolation(validator, dto, "longitude");
     }
 
     @Test
     void longitude_atBoundary_passesValidation() {
-        assertThat(validator.validate(validDto().setLongitude(-180.0))).isEmpty();
-        assertThat(validator.validate(validDto().setLongitude(180.0))).isEmpty();
+        assertNoViolations(validator, validDto().setLongitude(-180.0));
+        assertNoViolations(validator, validDto().setLongitude(180.0));
     }
 
     @Test
     void userId_null_failsValidation() {
         AddLocationDto dto = validDto().setUserId(null);
-        assertThat(validator.validate(dto))
-                .anyMatch(v -> v.getPropertyPath().toString().equals("userId"));
+        assertFieldHasViolation(validator, dto, "userId");
     }
 
     @Test
     void userId_valid_passesValidation() {
         AddLocationDto dto = validDto().setUserId(UUID.randomUUID());
-        assertThat(validator.validate(dto)).isEmpty();
+        assertNoViolations(validator, dto);
     }
 
 }

@@ -1,9 +1,8 @@
 package com.weatherviewer.dto.helper;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorFactory;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
+import jakarta.validation.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ValidatorTestFactory {
 
@@ -11,7 +10,7 @@ public final class ValidatorTestFactory {
 
     @SafeVarargs
     public static Validator skipValidator(Class<? extends ConstraintValidator<?, ?>>... toSkip) {
-        try (var factory = Validation.byDefaultProvider()
+        try (ValidatorFactory factory = Validation.byDefaultProvider()
                 .configure()
                 .constraintValidatorFactory(new ConstraintValidatorFactory() {
                     @Override
@@ -36,4 +35,14 @@ public final class ValidatorTestFactory {
             return factory.getValidator();
         }
     }
+
+    public static void assertFieldHasViolation(Validator validator, Object dto, String fieldName) {
+        assertThat(validator.validate(dto))
+                .anyMatch(v -> v.getPropertyPath().toString().equals(fieldName));
+    }
+
+    public static void assertNoViolations(Validator validator, Object dto) {
+        assertThat(validator.validate(dto)).isEmpty();
+    }
+
 }
