@@ -11,8 +11,8 @@ public enum TimeOfDay {
         if (time == null) {
             return UNDEFINED;
         }
-        int currentTime = time.getHour();
-        return currentTime >= 8 && currentTime <= 20 ? DAY : NIGHT;
+        int hour = time.getHour();
+        return hour >= 8 && hour <= 20 ? DAY : NIGHT;
     }
 
 }
