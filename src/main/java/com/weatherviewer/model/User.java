@@ -42,16 +42,10 @@ public class User extends BaseEntity {
     private List<Location> locations;
 
     public String getFullName() {
-        if (firstName == null && lastName == null) {
-            return "";
-        }
-        if (firstName == null) {
-            return lastName;
-        }
-        if (lastName == null) {
-            return firstName;
-        }
-        return firstName + " " + lastName;
+        String first = (firstName == null || firstName.isBlank()) ? "" : firstName;
+        String last = (lastName == null || lastName.isBlank()) ? "" : lastName;
+
+        return (first + " " + last).trim();
     }
 
 }
