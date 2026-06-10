@@ -12,29 +12,16 @@ public enum WeatherCondition {
     UNDEFINED;
 
     public static WeatherCondition getWeatherConditionForCode(Integer code) {
-        String codeStr = String.valueOf(code);
+        if (code == null) return UNDEFINED;
 
-        if (codeStr.startsWith("2")) {
-            return THUNDERSTORM;
-        }
-        if (codeStr.startsWith("3")) {
-            return DRIZZLE;
-        }
-        if (codeStr.startsWith("5")) {
-            return RAIN;
-        }
-        if (codeStr.startsWith("6")) {
-            return SNOW;
-        }
-        if (codeStr.startsWith("7")) {
-            return ATMOSPHERE;
-        }
-        if (codeStr.equals("800")) {
-            return CLEAR;
-        }
-        if (codeStr.startsWith("8")) {
-            return CLOUDS;
-        }
+        if (code >= 200 && code < 300) return THUNDERSTORM;
+        if (code >= 300 && code < 400) return DRIZZLE;
+        if (code >= 500 && code < 600) return RAIN;
+        if (code >= 600 && code < 700) return SNOW;
+        if (code >= 700 && code < 800) return ATMOSPHERE;
+        if (code == 800) return CLEAR;
+        if (code > 800 && code < 900)  return CLOUDS;
+
         return UNDEFINED;
     }
 
