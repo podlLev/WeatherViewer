@@ -8,7 +8,7 @@ public class LongitudeValidator implements ConstraintValidator<Longitude, Double
 
     @Override
     public boolean isValid(Double value, ConstraintValidatorContext context) {
-        return value >= -180.0 && value <= 180.0;
+        return value == null || value >= -180.0 && value <= 180.0;
     }
 
 }
