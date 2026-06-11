@@ -4,11 +4,9 @@ import com.weatherviewer.dto.CreateUserDto;
 import com.weatherviewer.validation.annotation.PasswordMatches;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-@Component
 public class PasswordMatchesValidator implements ConstraintValidator<PasswordMatches, CreateUserDto> {
 
     @Override
