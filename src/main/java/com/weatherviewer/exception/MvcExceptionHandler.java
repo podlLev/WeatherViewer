@@ -3,7 +3,6 @@ package com.weatherviewer.exception;
 import com.weatherviewer.controller.*;
 import com.weatherviewer.exception.notfound.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSourceResolvable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
