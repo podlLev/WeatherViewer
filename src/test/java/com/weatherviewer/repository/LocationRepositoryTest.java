@@ -66,8 +66,9 @@ class LocationRepositoryTest {
     }
 
     @Test
-    void findByUserIdOrderByCreatedAtDesc_returnsInOrder() {
+    void findByUserIdOrderByCreatedAtDesc_returnsInOrder() throws InterruptedException {
         entityManager.persistAndFlush(location("Kyiv", 50.45, 30.52, false, user));
+        Thread.sleep(10);
         entityManager.persistAndFlush(location("Lviv", 49.84, 24.03, false, user));
 
         List<Location> result = locationRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
