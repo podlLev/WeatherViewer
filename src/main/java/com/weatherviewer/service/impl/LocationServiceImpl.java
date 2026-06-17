@@ -57,6 +57,9 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public LocationDto getByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId) {
         Location location = locationRepository.findByLatitudeAndLongitudeAndUserId(latitude, longitude, userId);
+        if (location == null) {
+            throw new LocationNotFoundException("Location not found at coordinates: " + latitude + ", " + longitude);
+        }
         return locationMapper.toDto(location);
     }
 

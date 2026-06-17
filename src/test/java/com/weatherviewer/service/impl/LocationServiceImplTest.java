@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -129,12 +130,18 @@ class LocationServiceImplTest {
     void delete_deletesLocation() {
         UUID id = UUID.randomUUID();
         Location location = new Location();
+        location.setId(id);
+
+        User user = new User();
+        user.setLocations(new ArrayList<>(List.of(location)));
+        location.setUser(user);
 
         when(locationRepository.findById(id)).thenReturn(Optional.of(location));
 
         service.delete(id);
 
         verify(locationRepository).delete(location);
+        assertThat(user.getLocations()).doesNotContain(location);
     }
 
     @Test
