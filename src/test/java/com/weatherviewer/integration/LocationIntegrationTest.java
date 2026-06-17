@@ -1,4 +1,4 @@
-package com.weatherviewer;
+package com.weatherviewer.integration;
 
 import com.weatherviewer.model.Location;
 import com.weatherviewer.model.User;

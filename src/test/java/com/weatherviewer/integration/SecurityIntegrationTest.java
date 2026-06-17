@@ -1,4 +1,4 @@
-package com.weatherviewer;
+package com.weatherviewer.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.weatherviewer;
+package com.weatherviewer.integration;
 
 import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.dto.enums.WeatherCondition;

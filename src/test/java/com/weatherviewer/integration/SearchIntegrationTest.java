@@ -1,4 +1,4 @@
-package com.weatherviewer;
+package com.weatherviewer.integration;
 
 import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.model.Location;
