@@ -64,6 +64,7 @@ public class LocationServiceImpl implements LocationService {
     @Transactional
     public void delete(UUID id) {
         Location location = getEntityById(id);
+        location.getUser().getLocations().remove(location);
         locationRepository.delete(location);
     }
 
