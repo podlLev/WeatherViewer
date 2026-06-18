@@ -10,4 +10,9 @@ class WeatherViewerApplicationTests {
     void contextLoads() {
     }
 
+    @Test
+    void mainMethodStartsApplication() {
+        WeatherViewerApplication.main(new String[] {});
+    }
+
 }

@@ -102,7 +102,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "users:write")
     void getUsers_returns200AndList() throws Exception {
         List<UserDto> dtos = List.of(new UserDto().setEmail("john@example.com"));
         when(userService.getUsers()).thenReturn(dtos);
@@ -113,7 +113,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "users:write")
     void getUserById_returns200() throws Exception {
         UUID id = UUID.randomUUID();
         UserDto dto = new UserDto().setEmail("john@example.com");
@@ -125,7 +125,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "users:write")
     void getUserById_notFound_returns404() throws Exception {
         UUID id = UUID.randomUUID();
         when(userService.getById(id)).thenThrow(new UserNotFoundException("User not found by id: " + id));
@@ -135,7 +135,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "users:write")
     void getUserByEmail_returns200() throws Exception {
         UserDto dto = new UserDto().setEmail("john@example.com");
         when(userService.getByEmail("john@example.com")).thenReturn(dto);
@@ -147,7 +147,7 @@ class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = "users:write")
     void getUserByEmail_invalidEmail_returns400() throws Exception {
         mockMvc.perform(get("/api/v1/users/email")
                         .param("email", "not-an-email"))

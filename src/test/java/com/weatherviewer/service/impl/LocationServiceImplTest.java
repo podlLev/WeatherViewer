@@ -21,6 +21,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -127,29 +129,56 @@ class LocationServiceImplTest {
     }
 
     @Test
-    void delete_deletesLocation() {
+    void getByCoordinatesAndUserId_notFound_throwsLocationNotFoundException() {
+        UUID userId = UUID.randomUUID();
+        when(locationRepository.findByLatitudeAndLongitudeAndUserId(50.45, 30.52, userId)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.getByCoordinatesAndUserId(50.45, 30.52, userId))
+                .isInstanceOf(LocationNotFoundException.class);
+    }
+
+    @Test
+    void deleteByIdAndUserId_ownLocation_deletesSuccessfully() {
         UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         Location location = new Location();
         location.setId(id);
 
         User user = new User();
+        user.setId(userId);
         user.setLocations(new ArrayList<>(List.of(location)));
         location.setUser(user);
 
         when(locationRepository.findById(id)).thenReturn(Optional.of(location));
 
-        service.delete(id);
+        service.deleteByIdAndUserId(id, userId);
 
         verify(locationRepository).delete(location);
         assertThat(user.getLocations()).doesNotContain(location);
     }
 
     @Test
-    void delete_notFound_throwsLocationNotFoundException() {
+    void deleteByIdAndUserId_wrongUser_throwsAccessDeniedException() {
         UUID id = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        UUID wrongUserId = UUID.randomUUID();
+        Location location = location(id, ownerId);
+
+        when(locationRepository.findById(id)).thenReturn(Optional.of(location));
+
+        assertThatThrownBy(() -> service.deleteByIdAndUserId(id, wrongUserId))
+                .isInstanceOf(AccessDeniedException.class);
+
+        verify(locationRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteByIdAndUserId_notFound_throwsLocationNotFoundException() {
+        UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         when(locationRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.delete(id))
+        assertThatThrownBy(() -> service.deleteByIdAndUserId(id, userId))
                 .isInstanceOf(LocationNotFoundException.class);
     }
 

@@ -65,8 +65,11 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional
-    public void delete(UUID id) {
+    public void deleteByIdAndUserId(UUID id, UUID userId) {
         Location location = getEntityById(id);
+        if (!Objects.equals(location.getUser().getId(), userId)) {
+            throw new AccessDeniedException("You are not authorized to delete this location");
+        }
         location.getUser().getLocations().remove(location);
         locationRepository.delete(location);
     }

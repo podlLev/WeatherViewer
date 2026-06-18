@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.exception.notfound.LocationNotFoundException;
+import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,12 +16,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -28,13 +32,76 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LocationControllerTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @MockitoBean
-    LocationService locationService;
+    private LocationService locationService;
+
+    private SecUser mockSecUser;
+    private UUID mockUserId;
+
+    @BeforeEach
+    void setUp() {
+        mockUserId = UUID.randomUUID();
+        mockSecUser = new SecUser(
+                mockUserId,
+                "john@example.com",
+                "hashed",
+                Set.of(),
+                true,
+                "John Doe"
+        );
+    }
+
+    @Test
+    void getMyLocations_returns200AndList() throws Exception {
+        List<LocationDto> dtos = List.of(new LocationDto().setName("Kyiv"));
+        when(locationService.getByUserId(mockUserId)).thenReturn(dtos);
+
+        mockMvc.perform(get("/api/v1/locations/my")
+                        .with(user(mockSecUser)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Kyiv"));
+    }
+
+    @Test
+    void deleteMyLocation_returns204() throws Exception {
+        UUID locationId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/locations/my/{id}", locationId)
+                        .with(csrf())
+                        .with(user(mockSecUser)))
+                .andExpect(status().isNoContent());
+
+        verify(locationService).deleteByIdAndUserId(locationId, mockUserId);
+    }
+
+    @Test
+    void addMyLocationToFavorite_returns204() throws Exception {
+        UUID locationId = UUID.randomUUID();
+
+        mockMvc.perform(post("/api/v1/locations/my/{id}/favorite", locationId)
+                        .with(csrf())
+                        .with(user(mockSecUser)))
+                .andExpect(status().isNoContent());
+
+        verify(locationService).addToFavorite(locationId, mockUserId);
+    }
+
+    @Test
+    void removeMyLocationFromFavorite_returns204() throws Exception {
+        UUID locationId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/locations/my/{id}/favorite", locationId)
+                        .with(csrf())
+                        .with(user(mockSecUser)))
+                .andExpect(status().isNoContent());
+
+        verify(locationService).removeFromFavorite(locationId, mockUserId);
+    }
 
     @Test
     void addLocation_returns201AndId() throws Exception {
@@ -99,11 +166,14 @@ class LocationControllerTest {
     @Test
     void deleteLocationById_returns204() throws Exception {
         UUID id = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
-        mockMvc.perform(delete("/api/v1/locations/{id}", id).with(csrf()))
+        mockMvc.perform(delete("/api/v1/locations/{id}", id)
+                        .param("userId", userId.toString())
+                        .with(csrf()))
                 .andExpect(status().isNoContent());
 
-        verify(locationService).delete(id);
+        verify(locationService).deleteByIdAndUserId(id, userId);
     }
 
     @Test

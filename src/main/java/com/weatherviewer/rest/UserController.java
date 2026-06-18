@@ -23,13 +23,13 @@ import java.util.UUID;
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Slf4j
+@PreAuthorize("hasAuthority('users:write')")
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('users:write')")
     public UUID createUser(@RequestBody @Valid CreateUserDto createUserDto) {
         log.info("Request: createUser called with email={}", createUserDto.getEmail());
         return userService.create(createUserDto);
@@ -62,7 +62,6 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('users:write')")
     public void deleteUserById(@PathVariable UUID id) {
         log.info("Request: deleteUserById called with id={}", id);
         userService.delete(id);
@@ -70,7 +69,6 @@ public class UserController {
     }
 
     @PutMapping("/role")
-    @PreAuthorize("hasAuthority('users:write')")
     public void updateUserRole(@RequestBody @Valid UpdateUserRoleDto dto) {
         log.info("Request: updateUserRole called for userId={} with newRole={}", dto.getUserId(), dto.getNewRole());
         userService.updateUserRole(dto);

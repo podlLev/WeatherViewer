@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getUsers() {
         return userRepository.findAll().stream().map(userMapper::toDto).toList();
     }
@@ -50,6 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto getById(UUID id) {
         User user = getEntityById(id);
         return userMapper.toDto(user);
@@ -62,6 +64,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto getByEmail(String email) {
         User user = getEntityByEmail(email);
         return userMapper.toDto(user);
@@ -84,6 +87,8 @@ public class UserServiceImpl implements UserService {
         if (updateUserDto.getPassword() != null && !updateUserDto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(updateUserDto.getPassword()));
         }
+
+        userRepository.save(user);
         return userMapper.toDto(user);
     }
 
