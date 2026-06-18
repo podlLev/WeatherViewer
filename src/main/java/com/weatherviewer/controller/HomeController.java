@@ -64,7 +64,7 @@ public class HomeController {
                                  RedirectAttributes redirectAttributes,
                                  @RequestParam(required = false, defaultValue = "date") String sort) {
         log.info("User '{}' is deleting location with id={}", user.getUsername(), id);
-        locationService.delete(id);
+        locationService.deleteByIdAndUserId(id, user.getId());
         redirectAttributes.addFlashAttribute("successMessage", "Location deleted successfully");
         return "redirect:/?sort=" + sort;
     }

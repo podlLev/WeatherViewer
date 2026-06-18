@@ -21,7 +21,7 @@ public interface LocationService {
 
     LocationDto getByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId);
 
-    void delete(UUID id);
+    void deleteByIdAndUserId(UUID id, UUID userId);
 
     void deleteByUserId(UUID userId);
 
