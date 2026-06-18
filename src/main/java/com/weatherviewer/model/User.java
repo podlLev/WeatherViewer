@@ -38,7 +38,7 @@ public class User extends BaseEntity {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private Role role;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Location> locations;
 
     public String getFullName() {
