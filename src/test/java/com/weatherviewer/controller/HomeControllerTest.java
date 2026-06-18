@@ -172,7 +172,7 @@ class HomeControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/?sort=*"));
 
-        verify(locationService).delete(locationId);
+        verify(locationService).deleteByIdAndUserId(locationId, secUser.getId());
     }
 
     @Test
