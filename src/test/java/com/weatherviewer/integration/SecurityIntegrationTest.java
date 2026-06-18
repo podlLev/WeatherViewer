@@ -82,8 +82,8 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    @WithMockUser
-    void apiUsers_authenticated_returnsOk() throws Exception {
+    @WithMockUser(authorities = "users:write")
+    void apiUsers_withWriteAuthority_returnsOk() throws Exception {
         mockMvc.perform(get("/api/v1/users"))
                 .andExpect(status().isOk());
     }
