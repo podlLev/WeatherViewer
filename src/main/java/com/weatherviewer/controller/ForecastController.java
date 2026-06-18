@@ -1,6 +1,5 @@
 package com.weatherviewer.controller;
 
-import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
@@ -32,13 +31,13 @@ public class ForecastController {
                               Model model) {
         log.info("Fetching forecast for user={} at lat={}, lon={}", user.getUsername(), latitude, longitude);
 
-        LocationDto locationDto = locationService.getByCoordinatesAndUserId(latitude, longitude, user.getId());
+        String locationName = locationService.getByCoordinatesAndUserId(latitude, longitude, user.getId()).getName();
         List<WeatherDto> hourlyForecast = weatherApiService.getHourlyForecastByCoordinates(latitude, longitude);
         List<WeatherDto> dailyForecast = weatherApiService.getDailyForecastByCoordinates(latitude, longitude);
 
-        log.info("Forecast retrieved for location={} (user={})", locationDto.getName(), user.getUsername());
+        log.info("Forecast retrieved for location={} (user={})", locationName, user.getUsername());
 
-        model.addAttribute("locationName", locationDto.getName());
+        model.addAttribute("locationName", locationName);
         model.addAttribute("hourlyForecast", hourlyForecast);
         model.addAttribute("dailyForecast", dailyForecast);
 
