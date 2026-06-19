@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
@@ -14,8 +14,8 @@ import java.util.Locale;
 public class AppConfig {
 
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
+    public RestClient restClient() {
+        return RestClient.create();
     }
 
     @Bean
