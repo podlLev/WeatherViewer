@@ -4,16 +4,20 @@ import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.dto.enums.WeatherCondition;
 import com.weatherviewer.exception.ExternalHttpCallException;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.service.integration.WeatherApiClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,16 +29,26 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class WeatherApiIntegrationTest {
 
     @Autowired
-    private RestTemplate restTemplate;
+    private RestClient.Builder restClientBuilder;
 
     @Autowired
     private WeatherApiService weatherApiService;
 
     private MockRestServiceServer mockServer;
 
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
+    private WeatherApiClient weatherApiClient;
+
     @BeforeEach
     void setUp() {
-        mockServer = MockRestServiceServer.createServer(restTemplate);
+        mockServer = MockRestServiceServer.bindTo(restClientBuilder).build();
+        RestClient mockedClient = restClientBuilder.build();
+        ReflectionTestUtils.setField(weatherApiClient, "restClient", mockedClient);
+        cacheManager.getCacheNames()
+                .forEach(name -> Objects.requireNonNull(cacheManager.getCache(name)).clear());
     }
 
     private final String weatherJson = """
