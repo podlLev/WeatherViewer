@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -73,6 +74,7 @@ class LocationIntegrationTest {
     @Test
     void addLocation_validData_savesInDatabase() throws Exception {
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv")
                         .param("latitude", "50.45")
@@ -88,6 +90,7 @@ class LocationIntegrationTest {
     @Test
     void addLocation_duplicateCoordinates_rejectedByValidator() throws Exception {
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv")
                         .param("latitude", "50.45")
@@ -95,6 +98,7 @@ class LocationIntegrationTest {
                 .andExpect(status().is3xxRedirection());
 
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv Duplicate")
                         .param("latitude", "50.45")
@@ -114,6 +118,7 @@ class LocationIntegrationTest {
                 .setUser(savedUser));
 
         mockMvc.perform(delete("/locations/{id}", location.getId())
+                        .with(csrf())
                         .with(user(secUser)))
                 .andExpect(status().is3xxRedirection());
 
@@ -130,6 +135,7 @@ class LocationIntegrationTest {
                 .setFavorite(false));
 
         mockMvc.perform(post("/locations/{id}/favorite", location.getId())
+                        .with(csrf())
                         .with(user(secUser)))
                 .andExpect(status().is3xxRedirection());
 
@@ -147,6 +153,7 @@ class LocationIntegrationTest {
                 .setFavorite(true));
 
         mockMvc.perform(delete("/locations/{id}/favorite", location.getId())
+                        .with(csrf())
                         .with(user(secUser)))
                 .andExpect(status().is3xxRedirection());
 
@@ -172,6 +179,7 @@ class LocationIntegrationTest {
                 .setFavorite(false));
 
         mockMvc.perform(post("/locations/{id}/favorite", location.getId())
+                        .with(csrf())
                         .with(user(secUser)))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"))

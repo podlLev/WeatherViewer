@@ -2,7 +2,8 @@ package com.weatherviewer.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.weatherviewer.client.WeatherApiClient;
+import com.weatherviewer.exception.ExternalHttpCallException;
+import com.weatherviewer.service.integration.WeatherApiCache;
 import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
@@ -19,13 +20,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WeatherApiServiceImplTest {
 
     @Mock
-    private WeatherApiClient weatherApiClient;
+    private WeatherApiCache weatherApiCache;
 
     @Mock
     private WeatherAggregatorHelper weatherAggregatorHelper;
@@ -57,7 +59,7 @@ class WeatherApiServiceImplTest {
         JsonNode node = json("{}");
 
         when(locationMapper.fromDto(dto)).thenReturn(location);
-        when(weatherApiClient.fetchCurrentWeatherByCoordinates(50.45, 30.52)).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCoordinates(50.45, 30.52)).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByLocation(dto);
@@ -73,14 +75,14 @@ class WeatherApiServiceImplTest {
         WeatherDto weatherDto = new WeatherDto();
         JsonNode node = json("{}");
 
-        when(weatherApiClient.fetchCurrentWeatherByCoordinates(50.45, 30.52)).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCoordinates(50.45, 30.52)).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByLocation(location);
 
         assertThat(result).isEqualTo(weatherDto);
-        verify(weatherApiClient).fetchCurrentWeatherByCoordinates(50.45, 30.52);
-        verify(weatherApiClient, never()).fetchCurrentWeatherByCity(any());
+        verify(weatherApiCache).fetchCurrentWeatherByCoordinates(50.45, 30.52);
+        verify(weatherApiCache, never()).fetchCurrentWeatherByCity(any());
     }
 
     @Test
@@ -92,13 +94,13 @@ class WeatherApiServiceImplTest {
         WeatherDto weatherDto = new WeatherDto();
         JsonNode node = json("{}");
 
-        when(weatherApiClient.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByLocation(location);
 
         assertThat(result).isEqualTo(weatherDto);
-        verify(weatherApiClient).fetchCurrentWeatherByCity("Kyiv");
+        verify(weatherApiCache).fetchCurrentWeatherByCity("Kyiv");
     }
 
     @Test
@@ -110,7 +112,7 @@ class WeatherApiServiceImplTest {
         WeatherDto weatherDto = new WeatherDto();
         JsonNode node = json("{}");
 
-        when(weatherApiClient.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByLocation(location);
@@ -127,7 +129,7 @@ class WeatherApiServiceImplTest {
         WeatherDto weatherDto = new WeatherDto();
         JsonNode node = json("{}");
 
-        when(weatherApiClient.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByLocation(location);
@@ -140,7 +142,7 @@ class WeatherApiServiceImplTest {
         JsonNode node = json("{}");
         WeatherDto weatherDto = new WeatherDto();
 
-        when(weatherApiClient.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCity("Kyiv")).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByCity("Kyiv");
@@ -153,7 +155,7 @@ class WeatherApiServiceImplTest {
         JsonNode node = json("{}");
         WeatherDto weatherDto = new WeatherDto();
 
-        when(weatherApiClient.fetchCurrentWeatherByCoordinates(50.45, 30.52)).thenReturn(node);
+        when(weatherApiCache.fetchCurrentWeatherByCoordinates(50.45, 30.52)).thenReturn(node);
         when(weatherApiMapper.toWeatherDto(node)).thenReturn(weatherDto);
 
         WeatherDto result = service.getWeatherByCoordinates(50.45, 30.52);
@@ -168,7 +170,7 @@ class WeatherApiServiceImplTest {
         WeatherDto w2 = new WeatherDto();
         List<WeatherDto> daily = List.of(w1);
 
-        when(weatherApiClient.fetchForecastByCity("Kyiv")).thenReturn(listNode);
+        when(weatherApiCache.fetchForecastByCity("Kyiv")).thenReturn(listNode);
         when(weatherApiMapper.toWeatherDto(any())).thenReturn(w1).thenReturn(w2);
         when(weatherAggregatorHelper.aggregateDailyForecast(anyList())).thenReturn(daily);
 
@@ -184,7 +186,7 @@ class WeatherApiServiceImplTest {
         WeatherDto w1 = new WeatherDto();
         List<WeatherDto> daily = List.of(w1);
 
-        when(weatherApiClient.fetchForecastByCoordinates(50.45, 30.52)).thenReturn(listNode);
+        when(weatherApiCache.fetchForecastByCoordinates(50.45, 30.52)).thenReturn(listNode);
         when(weatherApiMapper.toWeatherDto(any())).thenReturn(w1);
         when(weatherAggregatorHelper.aggregateDailyForecast(anyList())).thenReturn(daily);
 
@@ -199,7 +201,7 @@ class WeatherApiServiceImplTest {
         WeatherDto w1 = new WeatherDto();
         WeatherDto w2 = new WeatherDto();
 
-        when(weatherApiClient.fetchForecastByCity("Kyiv")).thenReturn(listNode);
+        when(weatherApiCache.fetchForecastByCity("Kyiv")).thenReturn(listNode);
         when(weatherApiMapper.toWeatherDto(any())).thenReturn(w1).thenReturn(w2);
 
         List<WeatherDto> result = service.getHourlyForecastByCity("Kyiv");
@@ -212,7 +214,7 @@ class WeatherApiServiceImplTest {
         JsonNode listNode = json("{\"list\": [{}, {}]}");
         WeatherDto w1 = new WeatherDto();
 
-        when(weatherApiClient.fetchForecastByCoordinates(50.45, 30.52)).thenReturn(listNode);
+        when(weatherApiCache.fetchForecastByCoordinates(50.45, 30.52)).thenReturn(listNode);
         when(weatherApiMapper.toWeatherDto(any())).thenReturn(w1);
 
         List<WeatherDto> result = service.getHourlyForecastByCoordinates(50.45, 30.52);
@@ -221,12 +223,32 @@ class WeatherApiServiceImplTest {
     }
 
     @Test
+    void getHourlyForecastByCity_missingListField_throwsExternalHttpCallException() throws Exception {
+        JsonNode node = objectMapper.readTree("{}");
+        when(weatherApiCache.fetchForecastByCity("Kyiv")).thenReturn(node);
+
+        assertThatThrownBy(() -> service.getHourlyForecastByCity("Kyiv"))
+                .isInstanceOf(ExternalHttpCallException.class)
+                .hasMessageContaining("Missing 'list' field");
+    }
+
+    @Test
+    void getHourlyForecastByCity_listNotArray_throwsExternalHttpCallException() throws Exception {
+        JsonNode node = objectMapper.readTree("{\"list\": \"invalid\"}");
+        when(weatherApiCache.fetchForecastByCity("Kyiv")).thenReturn(node);
+
+        assertThatThrownBy(() -> service.getHourlyForecastByCity("Kyiv"))
+                .isInstanceOf(ExternalHttpCallException.class)
+                .hasMessageContaining("Missing 'list' field");
+    }
+
+    @Test
     void getCitiesByName_returnsMappedList() throws Exception {
         JsonNode arrayNode = json("[{\"name\": \"Kyiv\"}, {\"name\": \"Lviv\"}]");
         GeoLocationDto g1 = new GeoLocationDto().setName("Kyiv");
         GeoLocationDto g2 = new GeoLocationDto().setName("Lviv");
 
-        when(weatherApiClient.fetchGeocodingByCity("Kyiv")).thenReturn(arrayNode);
+        when(weatherApiCache.fetchGeocodingByCity("Kyiv")).thenReturn(arrayNode);
         when(weatherApiMapper.toGeoLocationDto(any())).thenReturn(g1).thenReturn(g2);
 
         List<GeoLocationDto> result = service.getCitiesByName("Kyiv");
@@ -234,6 +256,16 @@ class WeatherApiServiceImplTest {
         assertThat(result).hasSize(2);
         assertThat(result).extracting(GeoLocationDto::getName)
                 .containsExactly("Kyiv", "Lviv");
+    }
+
+    @Test
+    void getCitiesByName_notArray_throwsExternalHttpCallException() throws Exception {
+        JsonNode node = objectMapper.readTree("{\"error\": \"not found\"}");
+        when(weatherApiCache.fetchGeocodingByCity("Kyiv")).thenReturn(node);
+
+        assertThatThrownBy(() -> service.getCitiesByName("Kyiv"))
+                .isInstanceOf(ExternalHttpCallException.class)
+                .hasMessageContaining("Unexpected geocoding response format");
     }
 
 }

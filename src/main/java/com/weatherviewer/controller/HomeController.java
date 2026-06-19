@@ -42,7 +42,7 @@ public class HomeController {
         };
 
         if (!userLocations.isEmpty()) {
-            Map<LocationDto, WeatherDto> locationWeatherMap = userLocations.stream()
+            Map<LocationDto, WeatherDto> locationWeatherMap = userLocations.parallelStream()
                     .collect(Collectors.toMap(
                             Function.identity(),
                             weatherApiService::getWeatherByLocation,

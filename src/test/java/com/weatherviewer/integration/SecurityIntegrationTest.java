@@ -8,6 +8,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -92,6 +93,7 @@ class SecurityIntegrationTest {
     @WithMockUser(authorities = "users:read")
     void createUser_withoutWriteAuthority_returnsUnprocessableEntity() throws Exception {
         mockMvc.perform(post("/api/v1/users")
+                        .with(csrf())
                         .contentType("application/json")
                         .content("{}"))
                 .andExpect(status().isUnprocessableEntity());
@@ -120,6 +122,7 @@ class SecurityIntegrationTest {
     @WithMockUser(authorities = "users:write")
     void createUser_withWriteAuthority_doesNotReturnForbidden() throws Exception {
         mockMvc.perform(post("/api/v1/users")
+                        .with(csrf())
                         .contentType("application/json")
                         .content("{}"))
                 .andExpect(result -> {
@@ -131,7 +134,7 @@ class SecurityIntegrationTest {
     @Test
     @WithMockUser
     void logout_redirectsToSignIn() throws Exception {
-        mockMvc.perform(post("/sign-out"))
+        mockMvc.perform(post("/sign-out").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/sign-in"));
     }

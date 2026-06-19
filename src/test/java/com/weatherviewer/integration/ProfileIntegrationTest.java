@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -66,6 +67,7 @@ class ProfileIntegrationTest {
     @Test
     void updateProfile_validData_updatesInDatabase() throws Exception {
         mockMvc.perform(post("/profile")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("email", "john@example.com")
                         .param("firstName", "Jane")
@@ -81,6 +83,7 @@ class ProfileIntegrationTest {
     @Test
     void updateProfile_newPassword_hashesAndUpdates() throws Exception {
         mockMvc.perform(post("/profile")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("email", "john@example.com")
                         .param("firstName", "John")
@@ -104,6 +107,7 @@ class ProfileIntegrationTest {
                 .setRole(Role.USER));
 
         mockMvc.perform(post("/profile")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("email", "taken@example.com")
                         .param("firstName", "John")
@@ -117,6 +121,7 @@ class ProfileIntegrationTest {
     @Test
     void updateProfile_blankFirstName_doesNotUpdate() throws Exception {
         mockMvc.perform(post("/profile")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("email", "john@example.com")
                         .param("firstName", "")

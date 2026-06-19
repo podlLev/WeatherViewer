@@ -24,6 +24,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -86,6 +87,7 @@ class SearchIntegrationTest {
         when(weatherApiService.getCitiesByName("Kyiv")).thenReturn(results);
 
         mockMvc.perform(get("/search")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("q", "Kyiv"))
                 .andExpect(status().isOk())
@@ -97,6 +99,7 @@ class SearchIntegrationTest {
     @Test
     void addLocation_validData_savesInDatabaseViaRealValidator() throws Exception {
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv")
                         .param("latitude", "50.45")
@@ -113,6 +116,7 @@ class SearchIntegrationTest {
     @Test
     void addLocation_duplicateCoordinates_rejectedByRealUniqueLocationValidator() throws Exception {
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv")
                         .param("latitude", "50.45")
@@ -120,6 +124,7 @@ class SearchIntegrationTest {
                 .andExpect(status().is3xxRedirection());
 
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv Duplicate")
                         .param("latitude", "50.45")
@@ -135,6 +140,7 @@ class SearchIntegrationTest {
     @Test
     void addLocation_blankName_rejectedAndNotSaved() throws Exception {
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "")
                         .param("latitude", "50.45")
@@ -149,6 +155,7 @@ class SearchIntegrationTest {
     @Test
     void addLocation_invalidLatitude_rejectedAndNotSaved() throws Exception {
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Invalid")
                         .param("latitude", "91.0")
@@ -175,6 +182,7 @@ class SearchIntegrationTest {
         );
 
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(secUser))
                         .param("name", "Kyiv")
                         .param("latitude", "50.45")
@@ -182,6 +190,7 @@ class SearchIntegrationTest {
                 .andExpect(status().is3xxRedirection());
 
         mockMvc.perform(post("/search/add")
+                        .with(csrf())
                         .with(user(otherSecUser))
                         .param("name", "Kyiv")
                         .param("latitude", "50.45")
