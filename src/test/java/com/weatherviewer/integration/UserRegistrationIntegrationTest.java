@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,6 +34,7 @@ class UserRegistrationIntegrationTest {
     @Test
     void signUp_validData_createsUserInDatabase() throws Exception {
         mockMvc.perform(post("/sign-up")
+                        .with(csrf())
                         .param("firstName", "John")
                         .param("lastName", "Doe")
                         .param("email", "john@example.com")
@@ -48,6 +50,7 @@ class UserRegistrationIntegrationTest {
     @Test
     void signUp_passwordIsHashed_notStoredAsPlainText() throws Exception {
         mockMvc.perform(post("/sign-up")
+                        .with(csrf())
                         .param("firstName", "John")
                         .param("lastName", "Doe")
                         .param("email", "john@example.com")
@@ -62,6 +65,7 @@ class UserRegistrationIntegrationTest {
     @Test
     void signUp_duplicateEmail_doesNotCreateSecondUser() throws Exception {
         mockMvc.perform(post("/sign-up")
+                        .with(csrf())
                         .param("firstName", "John")
                         .param("lastName", "Doe")
                         .param("email", "john@example.com")
@@ -70,6 +74,7 @@ class UserRegistrationIntegrationTest {
                 .andExpect(status().is3xxRedirection());
 
         mockMvc.perform(post("/sign-up")
+                        .with(csrf())
                         .param("firstName", "Jane")
                         .param("lastName", "Smith")
                         .param("email", "john@example.com")
@@ -84,6 +89,7 @@ class UserRegistrationIntegrationTest {
     @Test
     void signUp_passwordsDoNotMatch_doesNotCreateUser() throws Exception {
         mockMvc.perform(post("/sign-up")
+                        .with(csrf())
                         .param("firstName", "John")
                         .param("lastName", "Doe")
                         .param("email", "mismatch@example.com")
@@ -97,6 +103,7 @@ class UserRegistrationIntegrationTest {
     @Test
     void signUp_newUserHasDefaultRoleAndStatus() throws Exception {
         mockMvc.perform(post("/sign-up")
+                        .with(csrf())
                         .param("firstName", "John")
                         .param("lastName", "Doe")
                         .param("email", "defaults@example.com")
