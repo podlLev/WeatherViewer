@@ -32,7 +32,6 @@ public class AddLocationDto {
     @NotNull(message = "Longitude is required")
     private Double longitude;
 
-    @NotNull(message = "User ID cannot be null")
     private UUID userId;
 
     private Boolean favorite;

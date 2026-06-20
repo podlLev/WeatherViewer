@@ -50,6 +50,12 @@ public class ControllerExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errors);
     }
 
+    @ExceptionHandler(LocationValidationException.class)
+    public ResponseEntity<List<FieldError>> handleLocationValidationException(LocationValidationException ex) {
+        log.info("Location validation errors: {}", ex.getErrors());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ex.getErrors());
+    }
+
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<Map<String, String>> handleMethodValidationException(HandlerMethodValidationException ex) {
         Map<String, String> errors = ex.getParameterValidationResults().stream()
