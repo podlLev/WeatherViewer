@@ -87,6 +87,59 @@ class ControllerExceptionHandlerTest {
     }
 
     @Test
+    void handleLocationValidationException_returns422WithErrors() {
+        record TestDto(String name, Double latitude) {}
+
+        TestDto target = new TestDto(null, null);
+        BindingResult bindingResult = new BeanPropertyBindingResult(target, "addLocation");
+        bindingResult.rejectValue("name", "NotBlank", "Name cannot be blank");
+
+        LocationValidationException ex = new LocationValidationException(bindingResult);
+
+        ResponseEntity<List<FieldError>> response = handler.handleLocationValidationException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).field()).isEqualTo("name");
+        assertThat(response.getBody().get(0).message()).isEqualTo("Name cannot be blank");
+    }
+
+    @Test
+    void handleLocationValidationException_multipleErrors_returnsAll() {
+        record TestDto(String name, Double latitude) {}
+
+        TestDto target = new TestDto(null, null);
+        BindingResult bindingResult = new BeanPropertyBindingResult(target, "addLocation");
+        bindingResult.rejectValue("name", "NotBlank", "Name cannot be blank");
+        bindingResult.rejectValue("latitude", "NotNull", "Latitude is required");
+
+        LocationValidationException ex = new LocationValidationException(bindingResult);
+
+        ResponseEntity<List<FieldError>> response = handler.handleLocationValidationException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody()).hasSize(2);
+        assertThat(response.getBody())
+                .extracting(FieldError::field)
+                .containsExactlyInAnyOrder("name", "latitude");
+    }
+
+    @Test
+    void handleLocationValidationException_noErrors_returnsEmptyList() {
+        record TestDto(String name) {}
+
+        TestDto target = new TestDto(null);
+        BindingResult bindingResult = new BeanPropertyBindingResult(target, "addLocation");
+
+        LocationValidationException ex = new LocationValidationException(bindingResult);
+
+        ResponseEntity<List<FieldError>> response = handler.handleLocationValidationException(ex);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody()).isEmpty();
+    }
+
+    @Test
     void handleValidationException_noErrors_returnsEmptyList() {
         Object target = new Object();
         BindingResult bindingResult = new BeanPropertyBindingResult(target, "target");

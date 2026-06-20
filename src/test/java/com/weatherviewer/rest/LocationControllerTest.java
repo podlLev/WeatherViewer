@@ -20,8 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -65,6 +64,43 @@ class LocationControllerTest {
                         .with(user(mockSecUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Kyiv"));
+    }
+
+    @Test
+    void addMyLocation_returns201AndId() throws Exception {
+        UUID id = UUID.randomUUID();
+        AddLocationDto dto = new AddLocationDto()
+                .setName("Kyiv")
+                .setLatitude(50.45)
+                .setLongitude(30.52)
+                .setUserId(UUID.randomUUID());
+
+        when(locationService.add(any())).thenReturn(id);
+
+        mockMvc.perform(post("/api/v1/locations/my")
+                        .with(csrf())
+                        .with(user(mockSecUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(content().string(("\"" + id + "\"")));
+    }
+
+    @Test
+    void addMyLocation_invalidData_returns422() throws Exception {
+        AddLocationDto invalidDto = new AddLocationDto()
+                .setName("")
+                .setLatitude(50.45)
+                .setLongitude(30.52);
+
+        mockMvc.perform(post("/api/v1/locations/my")
+                        .with(csrf())
+                        .with(user(mockSecUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidDto)))
+                .andExpect(status().isUnprocessableEntity());
+
+        verify(locationService, never()).add(any());
     }
 
     @Test

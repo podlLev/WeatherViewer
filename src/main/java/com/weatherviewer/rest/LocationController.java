@@ -2,6 +2,7 @@ package com.weatherviewer.rest;
 
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.LocationDto;
+import com.weatherviewer.exception.LocationValidationException;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.validation.annotation.Latitude;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +32,7 @@ import java.util.UUID;
 public class LocationController {
 
     private final LocationService locationService;
+    private final Validator validator;
 
     @GetMapping("/my")
     public List<LocationDto> getMyLocations(@AuthenticationPrincipal SecUser user) {
@@ -36,11 +40,19 @@ public class LocationController {
         return locationService.getByUserId(user.getId());
     }
 
-    @PostMapping
+    @PostMapping("/my")
     @ResponseStatus(HttpStatus.CREATED)
-    public UUID addLocation(@RequestBody @Valid AddLocationDto addLocationDto) {
-        log.info("Request: addLocation called with name={} for userId={}",
-                addLocationDto.getName(), addLocationDto.getUserId());
+    public UUID addMyLocation(@RequestBody AddLocationDto addLocationDto,
+                              @AuthenticationPrincipal SecUser user,
+                              BindingResult bindingResult) {
+        addLocationDto.setUserId(user.getId());
+        validator.validate(addLocationDto, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            throw new LocationValidationException(bindingResult);
+        }
+
+        log.info("Request: addMyLocation called with name={} for userId={}", addLocationDto.getName(), user.getId());
         return locationService.add(addLocationDto);
     }
 
@@ -63,6 +75,15 @@ public class LocationController {
     public void removeMyLocationFromFavorite(@PathVariable UUID id, @AuthenticationPrincipal SecUser user) {
         log.info("Request: removeMyLocationFromFavorite called for locationId={} by userId={}", id, user.getId());
         locationService.removeFromFavorite(id, user.getId());
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('users:write')")
+    public UUID addLocation(@RequestBody @Valid AddLocationDto addLocationDto) {
+        log.info("Request: addLocation called with name={} for userId={}",
+                addLocationDto.getName(), addLocationDto.getUserId());
+        return locationService.add(addLocationDto);
     }
 
     @GetMapping

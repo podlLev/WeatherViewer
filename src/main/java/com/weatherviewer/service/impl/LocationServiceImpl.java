@@ -26,8 +26,15 @@ public class LocationServiceImpl implements LocationService {
     @Override
     @Transactional
     public UUID add(AddLocationDto addLocationDto) {
+        addLocationDto.setLatitude(round(addLocationDto.getLatitude()));
+        addLocationDto.setLongitude(round(addLocationDto.getLongitude()));
+
         Location location = locationMapper.fromDto(addLocationDto);
         return locationRepository.save(location).getId();
+    }
+
+    private Double round(Double value) {
+        return value != null ? Math.round(value * 100000.0) / 100000.0 : null;
     }
 
     @Override
