@@ -24,11 +24,11 @@ public class UniqueLocationValidator implements ConstraintValidator<UniqueLocati
                 || addLocationDto.getLongitude() == null) {
             return false;
         }
-        boolean exists = locationService.existsByCoordinatesAndUserId(
-                addLocationDto.getLatitude(),
-                addLocationDto.getLongitude(),
-                addLocationDto.getUserId()
-        );
+
+        double roundedLat = round(addLocationDto.getLatitude());
+        double roundedLon = round(addLocationDto.getLongitude());
+
+        boolean exists = locationService.existsByCoordinatesAndUserId(roundedLat, roundedLon, addLocationDto.getUserId());
 
         if (exists) {
             context.disableDefaultConstraintViolation();
@@ -39,6 +39,10 @@ public class UniqueLocationValidator implements ConstraintValidator<UniqueLocati
         }
 
         return true;
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100000.0) / 100000.0;
     }
 
 }

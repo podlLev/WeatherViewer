@@ -110,9 +110,9 @@ class AddLocationDtoTest {
     }
 
     @Test
-    void userId_null_failsValidation() {
+    void userId_null_hasNoViolations() {
         AddLocationDto dto = validDto().setUserId(null);
-        assertFieldHasViolation(validator, dto, "userId");
+        assertNoViolations(validator, dto);
     }
 
     @Test

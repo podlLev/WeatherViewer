@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,7 +49,11 @@ class LocationServiceImplTest {
     @Test
     void add_savesAndReturnsId() {
         UUID id = UUID.randomUUID();
-        AddLocationDto dto = new AddLocationDto();
+        AddLocationDto dto = new AddLocationDto()
+                .setName("Kyiv")
+                .setLatitude(50.45)
+                .setLongitude(30.52)
+                .setUserId(UUID.randomUUID());
         Location location = new Location();
         location.setId(id);
 
@@ -60,6 +63,41 @@ class LocationServiceImplTest {
         UUID result = service.add(dto);
 
         assertThat(result).isEqualTo(id);
+    }
+
+    @Test
+    void add_roundsCoordinatesBeforeSaving() {
+        AddLocationDto dto = new AddLocationDto()
+                .setName("Java")
+                .setLatitude(-7.327969400000001)
+                .setLongitude(109.613910988013)
+                .setUserId(UUID.randomUUID());
+        Location location = new Location();
+
+        when(locationMapper.fromDto(dto)).thenReturn(location);
+        when(locationRepository.save(location)).thenReturn(location);
+
+        service.add(dto);
+
+        assertThat(dto.getLatitude()).isEqualTo(-7.32797);
+        assertThat(dto.getLongitude()).isEqualTo(109.61391);
+    }
+
+    @Test
+    void add_nullCoordinates_doesNotThrow() {
+        AddLocationDto dto = new AddLocationDto()
+                .setName("Unknown")
+                .setLatitude(null)
+                .setLongitude(null)
+                .setUserId(UUID.randomUUID());
+        Location location = new Location();
+
+        when(locationMapper.fromDto(dto)).thenReturn(location);
+        when(locationRepository.save(location)).thenReturn(location);
+
+        assertThatCode(() -> service.add(dto)).doesNotThrowAnyException();
+        assertThat(dto.getLatitude()).isNull();
+        assertThat(dto.getLongitude()).isNull();
     }
 
     @Test
