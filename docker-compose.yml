@@ -1,6 +1,6 @@
 services:
   weather_viewer:
-    build: .
+    image: podllev/weather-viewer:latest
     container_name: weather_viewer
     restart: always
     ports:
