@@ -1,6 +1,6 @@
 services:
   weather_viewer:
-    build: .
+    image: podllev/weather-viewer:latest
     container_name: weather_viewer
     restart: always
     ports:
@@ -10,6 +10,12 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/weather
       SPRING_DATA_REDIS_HOST: redis
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
