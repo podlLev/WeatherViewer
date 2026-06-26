@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog logicalFilePath="liquibase/changelog.xml" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="idx-location-user-favorite-created" author="Pidlisnyi Lev">
+        <createIndex tableName="location" indexName="idx_location_user_favorite_created">
+            <column name="user_id"/>
+            <column name="favorite"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx-location-user-name" author="Pidlisnyi Lev">
+        <createIndex tableName="location" indexName="idx_location_user_name">
+            <column name="user_id"/>
+            <column name="name"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx-location-user-lat-lon" author="Pidlisnyi Lev">
+        <createIndex tableName="location" indexName="idx_location_user_lat_lon">
+            <column name="user_id"/>
+            <column name="latitude"/>
+            <column name="longitude"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
