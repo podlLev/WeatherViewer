@@ -1,5 +1,6 @@
 package com.weatherviewer.config;
 
+import com.weatherviewer.ratelimit.RateLimitingFilter;
 import com.weatherviewer.security.CustomAuthFailureHandler;
 import com.weatherviewer.security.CustomAuthSuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -23,6 +25,7 @@ public class SecurityConfig {
 
     private final CustomAuthSuccessHandler customAuthSuccessHandler;
     private final CustomAuthFailureHandler customAuthFailureHandler;
+    private final RateLimitingFilter rateLimitingFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,7 +51,8 @@ public class SecurityConfig {
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessUrl("/sign-in")
-                );
+                )
+                .addFilterAfter(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

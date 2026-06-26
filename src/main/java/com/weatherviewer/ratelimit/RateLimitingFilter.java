@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.FlashMap;
+import org.springframework.web.servlet.support.SessionFlashMapManager;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -24,6 +26,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static final String RETRY_AFTER_HEADER = "Retry-After";
     private static final String RATE_LIMIT_REMAINING_HEADER = "X-RateLimit-Remaining";
+    private static final String API_PATH_PREFIX = "/api";
 
     private final RedisFixedWindowRateLimiter rateLimiter;
     private final RateLimitProperties properties;
@@ -53,16 +56,46 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             log.warn("Rate limit exceeded for key={} path={} limit={}/{}s",
                     clientKey, path, rule.getLimit(), rule.getWindowSeconds());
 
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader(RETRY_AFTER_HEADER, String.valueOf(result.retryAfterSeconds()));
-            response.setContentType("application/json");
-            response.getWriter().write(
-                    "{\"error\":\"Too many requests\",\"retryAfterSeconds\":%d}".formatted(result.retryAfterSeconds())
-            );
+
+            if (isApiRequest(request, path)) {
+                writeJsonTooManyRequests(response, result.retryAfterSeconds());
+            } else {
+                redirectWithFriendlyMessage(request, response, path);
+            }
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isApiRequest(HttpServletRequest request, String path) {
+        if (path.startsWith(API_PATH_PREFIX)) {
+            return true;
+        }
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains("application/json");
+    }
+
+    private void writeJsonTooManyRequests(HttpServletResponse response, long retryAfterSeconds) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType("application/json");
+        response.getWriter().write(
+                "{\"error\":\"Too many requests\",\"retryAfterSeconds\":%d}".formatted(retryAfterSeconds)
+        );
+    }
+
+    private void redirectWithFriendlyMessage(HttpServletRequest request,
+                                             HttpServletResponse response,
+                                             String path) {
+        SessionFlashMapManager flashMapManager = new SessionFlashMapManager();
+        FlashMap flashMap = new FlashMap();
+        flashMap.put("errorMessage", "You're making requests too quickly. Please wait a moment and try again.");
+        flashMap.setTargetRequestPath(path);
+        flashMapManager.saveOutputFlashMap(flashMap, request, response);
+
+        response.setStatus(HttpStatus.SEE_OTHER.value());
+        response.setHeader("Location", path);
     }
 
     private RateLimitProperties.Rule resolveRule(String path) {
