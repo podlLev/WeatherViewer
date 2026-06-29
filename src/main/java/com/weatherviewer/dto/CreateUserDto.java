@@ -35,11 +35,13 @@ public class CreateUserDto {
     @Password
     @NotBlank(message = "Password cannot be blank")
     @Size(max = 72, message = "Password cannot exceed 72 characters")
+    @ToString.Exclude
     private String password;
 
     @Password
     @NotBlank(message = "Repeat password cannot be blank")
     @Size(max = 72, message = "Password cannot exceed 72 characters")
+    @ToString.Exclude
     private String repeatPassword;
 
 }

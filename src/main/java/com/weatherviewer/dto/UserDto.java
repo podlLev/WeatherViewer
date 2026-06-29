@@ -2,7 +2,6 @@ package com.weatherviewer.dto;
 
 import com.weatherviewer.model.enums.Role;
 import com.weatherviewer.model.enums.UserStatus;
-import com.weatherviewer.validation.annotation.Password;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,11 +29,6 @@ public class UserDto {
     @NotBlank(message = "Email cannot be blank")
     @Size(max = 150, message = "Email cannot exceed 150 characters")
     private String email;
-
-    @Password
-    @NotBlank(message = "Password cannot be blank")
-    @Size(max = 72, message = "Password cannot exceed 72 characters")
-    private String password;
 
     @NotNull(message = "Status cannot be null")
     private UserStatus status;

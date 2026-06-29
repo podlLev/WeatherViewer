@@ -30,6 +30,7 @@ public class UpdateUserDto {
 
     @Password
     @Size(max = 72, message = "Password cannot exceed 72 characters")
+    @ToString.Exclude
     private String password;
 
 }
