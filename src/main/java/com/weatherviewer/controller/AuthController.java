@@ -3,6 +3,7 @@ package com.weatherviewer.controller;
 import com.weatherviewer.dto.CreateUserDto;
 import com.weatherviewer.service.LoginService;
 import com.weatherviewer.service.UserService;
+import com.weatherviewer.utils.SafeRedirectUtils;
 import jakarta.servlet.ServletException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,9 @@ public class AuthController {
 
     @GetMapping("/sign-in")
     public String signIn(@RequestParam(required = false) String redirect, Model model) {
-        log.info("Displaying sign-in page, redirect={}", redirect);
-        model.addAttribute("redirect", redirect);
+        String safeRedirect = SafeRedirectUtils.sanitize(redirect, null);
+        log.info("Displaying sign-in page, redirect={}", safeRedirect);
+        model.addAttribute("redirect", safeRedirect);
         return "sign-in";
     }
 
@@ -40,9 +42,10 @@ public class AuthController {
 
     @GetMapping("/sign-up")
     public String signUp(@RequestParam(required = false) String redirect, Model model) {
-        log.info("Displaying sign-up page, redirect={}", redirect);
+        String safeRedirect = SafeRedirectUtils.sanitize(redirect, null);
+        log.info("Displaying sign-up page, redirect={}", safeRedirect);
         model.addAttribute("user", new CreateUserDto());
-        model.addAttribute("redirect", redirect);
+        model.addAttribute("redirect", safeRedirect);
         return "sign-up";
     }
 
@@ -70,7 +73,7 @@ public class AuthController {
 
         log.info("Account created successfully for email={}", createUserDto.getEmail());
         redirectAttributes.addFlashAttribute("successMessage", "Account created successfully");
-        return (redirect != null && !redirect.isBlank()) ? "redirect:" + redirect : "redirect:/";
+        return "redirect:" + SafeRedirectUtils.sanitize(redirect, "/");
     }
 
 }
