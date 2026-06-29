@@ -13,7 +13,6 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Component
@@ -41,7 +40,7 @@ public class WeatherApiClient {
 
     public JsonNode fetchCurrentWeatherByCity(String city) {
         log.debug("Building URL and fetching current weather for city: {}", city);
-        String url = buildCityUrl(weatherApiUrlSuffix, encode(city));
+        String url = buildCityUrl(weatherApiUrlSuffix, city);
         return fetchJsonNode(url);
     }
 
@@ -53,7 +52,7 @@ public class WeatherApiClient {
 
     public JsonNode fetchForecastByCity(String city) {
         log.debug("Building URL and fetching forecast for city: {}", city);
-        String url = buildCityUrl(forecastApiUrlSuffix, encode(city));
+        String url = buildCityUrl(forecastApiUrlSuffix, city);
         return fetchJsonNode(url);
     }
 
@@ -65,12 +64,8 @@ public class WeatherApiClient {
 
     public JsonNode fetchGeocodingByCity(String city) {
         log.debug("Building URL and fetching geocoding data for city: {}", city);
-        String url = buildCityUrl(geocodingApiUrlSuffix, encode(city));
+        String url = buildCityUrl(geocodingApiUrlSuffix, city);
         return fetchJsonNode(url);
-    }
-
-    private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private JsonNode fetchJsonNode(String url) {
@@ -100,6 +95,7 @@ public class WeatherApiClient {
                 .queryParam("units", "metric")
                 .queryParam("lang", "en")
                 .queryParam("q", city)
+                .encode(StandardCharsets.UTF_8)
                 .build()
                 .toUriString();
     }
@@ -111,6 +107,7 @@ public class WeatherApiClient {
                 .queryParam("lang", "en")
                 .queryParam("lat", latitude)
                 .queryParam("lon", longitude)
+                .encode(StandardCharsets.UTF_8)
                 .build()
                 .toUriString();
     }
