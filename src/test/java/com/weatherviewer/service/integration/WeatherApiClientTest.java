@@ -7,6 +7,7 @@ import com.weatherviewer.exception.ExternalHttpCallException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -108,6 +109,22 @@ class WeatherApiClientTest {
         JsonNode result = client.fetchGeocodingByCity("Kyiv");
 
         assertThat(result).isEqualTo(mockNode);
+    }
+
+    @Test
+    void fetchCurrentWeatherByCity_encodesCityNameExactlyOnce() throws Exception {
+        JsonNode mockNode = mock(JsonNode.class);
+        when(responseSpec.body(String.class)).thenReturn("{\"weather\": []}");
+        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
+
+        client.fetchCurrentWeatherByCity("São Paulo");
+
+        ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
+        verify(requestHeadersUriSpec).uri(uriCaptor.capture());
+
+        String requestedUri = uriCaptor.getValue().toString();
+        assertThat(requestedUri).contains("q=S%C3%A3o%20Paulo");
+        assertThat(requestedUri).doesNotContain("%25");
     }
 
     @Test
