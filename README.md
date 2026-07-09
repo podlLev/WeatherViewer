@@ -166,3 +166,6 @@ src/main/resources/
 ├── static/           # CSS, JS, images
 └── liquibase/        # Database changelogs
 ```
+## License
+ 
+MIT — see [LICENSE](LICENSE) for details.
