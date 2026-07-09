@@ -1,10 +1,28 @@
-<p style="text-align: center; margin-bottom: 0;">
+<p align="center">
   <img src="src/main/resources/static/images/weather-app.png" width="100" alt="WeatherViewer logo">
 </p>
-<h1 style="text-align: center; margin-top: 0;">WeatherViewer</h1>
-<p style="text-align: center;">
-  A Spring Boot web app for tracking weather and forecasts across your favorite locations.
+<h1 align="center">WeatherViewer</h1>
+ 
+<p align="center"><strong>A Spring Boot web app for tracking weather and forecasts across your favorite locations.</strong></p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17-orange?logo=openjdk&logoColor=white" alt="Java 17">
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 3.5">
+  <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 17">
+  <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" alt="Redis 7">
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white" alt="Docker ready">
 </p>
+ 
+<p align="center">
+  <a href="#overview">Overview</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#tech-stack">Tech Stack</a> ·
+  <a href="#getting-started">Getting Started</a> ·
+  <a href="#api-documentation">API Docs</a> ·
+  <a href="#running-tests">Testing</a> ·
+  <a href="#project-structure">Structure</a>
+</p>
+
+---
 
 ## Overview
 
