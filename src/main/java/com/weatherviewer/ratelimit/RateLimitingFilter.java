@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.support.SessionFlashMapManager;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.support.SessionFlashMapManager;
 import java.io.IOException;
 import java.util.Comparator;
 
+@Component
 @RequiredArgsConstructor
 @Slf4j
 @Order(1)
@@ -28,7 +30,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final String RATE_LIMIT_REMAINING_HEADER = "X-RateLimit-Remaining";
     private static final String API_PATH_PREFIX = "/api";
 
-    private final RedisFixedWindowRateLimiter rateLimiter;
+    private final Bucket4jRedisRateLimiter rateLimiter;
     private final RateLimitProperties properties;
 
     @Override
@@ -47,7 +49,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String clientKey = resolveClientKey(request);
         String redisKey = "rate-limit:%s:%s".formatted(rule.getPathPrefix() == null ? "default" : rule.getPathPrefix(), clientKey);
 
-        RedisFixedWindowRateLimiter.RateLimitResult result =
+        Bucket4jRedisRateLimiter.RateLimitResult result =
                 rateLimiter.tryConsume(redisKey, rule.getLimit(), rule.getWindowSeconds());
 
         response.setHeader(RATE_LIMIT_REMAINING_HEADER, String.valueOf(result.remainingRequests()));
