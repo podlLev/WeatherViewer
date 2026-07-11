@@ -1,58 +1,47 @@
 package com.weatherviewer.ratelimit;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.BucketConfiguration;
-import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.redis.lettuce.cas.LettuceBasedProxyManager;
+import io.github.bucket4j.*;
+import io.github.bucket4j.distributed.proxy.ProxyManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class Bucket4jRedisRateLimiter {
 
-    private final LettuceBasedProxyManager<byte[]> proxyManager;
+    private final ProxyManager<byte[]> proxyManager;
 
-    private final ConcurrentHashMap<String, BucketConfiguration> configCache = new ConcurrentHashMap<>();
-
-    public RateLimitResult tryConsume(String key, int limit, int windowSeconds) {
+    public RateLimitResult tryConsume(String redisKey, int limit, int windowSeconds) {
         try {
-            BucketConfiguration configuration = configCache.computeIfAbsent(
-                    limit + ":" + windowSeconds,
-                    ignored -> buildConfiguration(limit, windowSeconds)
-            );
+            byte[] key = redisKey.getBytes(StandardCharsets.UTF_8);
+            Bucket bucket = proxyManager.builder().build(key, () -> bucketConfiguration(limit, windowSeconds));
 
-            byte[] redisKey = key.getBytes(StandardCharsets.UTF_8);
-            Supplier<BucketConfiguration> configurationSupplier = () -> configuration;
-            ConsumptionProbe probe = proxyManager.builder()
-                    .build(redisKey, configurationSupplier)
-                    .tryConsumeAndReturnRemaining(1);
+            ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
 
-            boolean allowed = probe.isConsumed();
-            long remaining = Math.max(probe.getRemainingTokens(), 0);
-            long retryAfterSeconds = allowed
-                    ? 0
-                    : Math.max(1, TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill()) + 1);
+            long retryAfterSeconds = probe.isConsumed()
+                    ? 0L
+                    : Math.max(1L, Duration.ofNanos(probe.getNanosToWaitForRefill()).toSeconds());
 
-            return new RateLimitResult(allowed, remaining, retryAfterSeconds);
+            return new RateLimitResult(probe.isConsumed(), probe.getRemainingTokens(), retryAfterSeconds);
         } catch (Exception ex) {
             log.warn("Rate limiter could not reach Redis, allowing request through: {}", ex.getMessage());
             return new RateLimitResult(true, limit, windowSeconds);
         }
     }
 
-    private BucketConfiguration buildConfiguration(int limit, int windowSeconds) {
+    private BucketConfiguration bucketConfiguration(int limit, int windowSeconds) {
+        Bandwidth bandwidth = Bandwidth.builder()
+                .capacity(limit)
+                .refillIntervally(limit, Duration.ofSeconds(windowSeconds))
+                .build();
+
         return BucketConfiguration.builder()
-                .addLimit(Bandwidth.builder()
-                        .capacity(limit)
-                        .refillIntervally(limit, Duration.ofSeconds(windowSeconds))
-                        .build())
+                .addLimit(bandwidth)
                 .build();
     }
 
