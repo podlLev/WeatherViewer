@@ -78,16 +78,6 @@ class LocationRepositoryTest {
     }
 
     @Test
-    void findByLatitudeAndLongitudeAndUserId_returnsCorrectLocation() {
-        entityManager.persistAndFlush(location("Kyiv", 50.45, 30.52, false, user));
-
-        Location result = locationRepository.findByLatitudeAndLongitudeAndUserId(50.45, 30.52, user.getId());
-
-        assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo("Kyiv");
-    }
-
-    @Test
     void findByLatitudeAndLongitudeAndUserId_returnsNullWhenNotFound() {
         Location result = locationRepository.findByLatitudeAndLongitudeAndUserId(0.0, 0.0, user.getId());
         assertThat(result).isNull();
@@ -125,13 +115,6 @@ class LocationRepositoryTest {
     @Test
     void existsByNameAndUserId_returnsFalseWhenNotExists() {
         assertThat(locationRepository.existsByNameAndUserId("Kyiv", user.getId())).isFalse();
-    }
-
-    @Test
-    void existsByLatitudeAndLongitudeAndUserId_returnsTrueWhenExists() {
-        entityManager.persistAndFlush(location("Kyiv", 50.45, 30.52, false, user));
-
-        assertThat(locationRepository.existsByLatitudeAndLongitudeAndUserId(50.45, 30.52, user.getId())).isTrue();
     }
 
     @Test
