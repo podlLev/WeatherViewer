@@ -28,7 +28,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final String RATE_LIMIT_REMAINING_HEADER = "X-RateLimit-Remaining";
     private static final String API_PATH_PREFIX = "/api";
 
-    private final RedisFixedWindowRateLimiter rateLimiter;
+    private final Bucket4jRedisRateLimiter rateLimiter;
     private final RateLimitProperties properties;
 
     @Override
@@ -47,7 +47,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String clientKey = resolveClientKey(request);
         String redisKey = "rate-limit:%s:%s".formatted(rule.getPathPrefix() == null ? "default" : rule.getPathPrefix(), clientKey);
 
-        RedisFixedWindowRateLimiter.RateLimitResult result =
+        Bucket4jRedisRateLimiter.RateLimitResult result =
                 rateLimiter.tryConsume(redisKey, rule.getLimit(), rule.getWindowSeconds());
 
         response.setHeader(RATE_LIMIT_REMAINING_HEADER, String.valueOf(result.remainingRequests()));

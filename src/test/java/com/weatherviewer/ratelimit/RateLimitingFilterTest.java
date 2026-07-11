@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class RateLimitingFilterTest {
 
     @Mock
-    private RedisFixedWindowRateLimiter rateLimiter;
+    private Bucket4jRedisRateLimiter rateLimiter;
 
     @Mock
     private FilterChain filterChain;
@@ -74,7 +74,7 @@ class RateLimitingFilterTest {
     @Test
     void allowed_passesRequestToFilterChain() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 9, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 9, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -86,7 +86,7 @@ class RateLimitingFilterTest {
     @Test
     void allowed_setsRemainingHeader() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 9, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 9, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -98,7 +98,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_apiPath_returnsJsonBody() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 30));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 30));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/weather/city");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -110,7 +110,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_apiPath_returns429Status() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 30));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 30));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/weather/city");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -122,7 +122,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_apiPath_setsContentTypeJson() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 30));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 30));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/weather/city");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -134,7 +134,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_apiPath_setsRetryAfterHeader() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 30));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 30));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/weather/city");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -146,7 +146,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_apiPath_doesNotContinueFilterChain() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 30));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 30));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/weather/city");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -158,7 +158,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_nonApiPathWithJsonAcceptHeader_isTreatedAsApiRequest() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 15));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 15));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sign-in");
         request.addHeader("Accept", "application/json");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -172,7 +172,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_browserSignIn_redirectsBackToSamePath() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 47));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 47));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sign-in");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -185,7 +185,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_browserSignIn_doesNotWriteJsonBody() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 47));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 47));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sign-in");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -197,7 +197,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_browserSignIn_setsRetryAfterHeader() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 47));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 47));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sign-in");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -209,7 +209,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_browserSignIn_doesNotContinueFilterChain() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 47));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 47));
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sign-in");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -225,7 +225,7 @@ class RateLimitingFilterTest {
                 rule("/api/v1/weather", 5)
         ));
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/weather/city");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -240,7 +240,7 @@ class RateLimitingFilterTest {
         properties.setDefaultWindowSeconds(7);
         properties.setRules(List.of(rule("/sign-in", 10)));
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 7));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 7));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/some/other/path");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -252,7 +252,7 @@ class RateLimitingFilterTest {
     @Test
     void clientKey_anonymousRequest_isKeyedByRemoteAddress() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         request.setRemoteAddr("203.0.113.5");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -265,7 +265,7 @@ class RateLimitingFilterTest {
     @Test
     void clientKey_xForwardedForHeader_takesPrecedenceOverRemoteAddress() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         request.setRemoteAddr("10.0.0.1");
         request.addHeader("X-Forwarded-For", "198.51.100.7, 10.0.0.1");
@@ -281,7 +281,7 @@ class RateLimitingFilterTest {
         UUID userId = UUID.randomUUID();
         authenticateAs(userId);
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/locations/my");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -294,7 +294,7 @@ class RateLimitingFilterTest {
     void clientKey_differentUsersBehindSameIp_getIndependentKeys() throws Exception {
         UUID firstUser = UUID.randomUUID();
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
 
         authenticateAs(firstUser);
         MockHttpServletRequest firstRequest = new MockHttpServletRequest("GET", "/api/v1/locations/my");
@@ -315,7 +315,7 @@ class RateLimitingFilterTest {
     @Test
     void blocked_nonApiRequestWithHtmlAccept_redirectsInsteadOfReturningJson() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(false, 0, 15));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(false, 0, 15));
 
         MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sign-in");
         request.addHeader("Accept", "text/html");
@@ -330,7 +330,7 @@ class RateLimitingFilterTest {
     @Test
     void clientKey_blankForwardedForFallsBackToRemoteAddress() throws Exception {
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         request.addHeader("X-Forwarded-For", "   ");
@@ -351,7 +351,7 @@ class RateLimitingFilterTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         request.setRemoteAddr("192.168.1.15");
@@ -373,7 +373,7 @@ class RateLimitingFilterTest {
         );
 
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 0, 60));
 
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         request.setRemoteAddr("198.51.100.20");
@@ -406,7 +406,7 @@ class RateLimitingFilterTest {
         String expectedKey = "rate-limit:/api/v1/weather:ip:127.0.0.1";
 
         when(rateLimiter.tryConsume(eq(expectedKey), eq(5), eq(10)))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 4, 10));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 4, 10));
 
         filter.doFilter(request, response, filterChain);
 
@@ -435,7 +435,7 @@ class RateLimitingFilterTest {
                 eq(expectedKey),
                 eq(properties.getDefaultLimit()),
                 eq(properties.getDefaultWindowSeconds())))
-                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 9, 60));
+                .thenReturn(new Bucket4jRedisRateLimiter.RateLimitResult(true, 9, 60));
 
         filter.doFilter(request, response, filterChain);
 
