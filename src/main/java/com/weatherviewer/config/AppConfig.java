@@ -14,8 +14,8 @@ import java.util.Locale;
 public class AppConfig {
 
     @Bean
-    public RestClient restClient() {
-        return RestClient.create();
+    public RestClient restClient(RestClient.Builder restClientBuilder) {
+        return restClientBuilder.build();
     }
 
     @Bean
