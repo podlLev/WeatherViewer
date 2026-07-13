@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weatherviewer.exception.ExternalHttpCallException;
-import com.weatherviewer.logging.CorrelationIdFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -72,14 +70,8 @@ public class WeatherApiClient {
 
     private JsonNode fetchJsonNode(String url) {
         try {
-            String correlationId = MDC.get(CorrelationIdFilter.MDC_KEY);
             String body = restClient.get()
                     .uri(URI.create(url))
-                    .headers(headers -> {
-                        if (correlationId != null) {
-                            headers.set(CorrelationIdFilter.CORRELATION_ID_HEADER, correlationId);
-                        }
-                    })
                     .retrieve()
                     .body(String.class);
             return objectMapper.readTree(body);

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weatherviewer.exception.ExternalHttpCallException;
-import com.weatherviewer.logging.CorrelationIdFilter;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,14 +11,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.MDC;
-import org.springframework.http.HttpHeaders;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URI;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,13 +53,7 @@ class WeatherApiClientTest {
 
         doReturn(requestHeadersUriSpec).when(restClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(any(URI.class));
-        doReturn(requestHeadersSpec).when(requestHeadersSpec).headers(any());
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-    }
-
-    @AfterEach
-    void clearMdc() {
-        MDC.clear();
     }
 
     @Test
@@ -167,44 +156,6 @@ class WeatherApiClientTest {
         assertThatThrownBy(() -> client.fetchCurrentWeatherByCity("Kyiv"))
                 .isInstanceOf(ExternalHttpCallException.class)
                 .hasMessageContaining("External HTTP call failed");
-    }
-
-    @Test
-    void fetchJsonNode_propagatesCorrelationIdFromMdc() throws Exception {
-        MDC.put(CorrelationIdFilter.MDC_KEY, "test-correlation-id");
-        JsonNode mockNode = mock(JsonNode.class);
-        when(responseSpec.body(String.class)).thenReturn("{\"weather\": []}");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
-        client.fetchCurrentWeatherByCity("Kyiv");
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Consumer<HttpHeaders>> headersCaptor = ArgumentCaptor.forClass(Consumer.class);
-        verify(requestHeadersSpec).headers(headersCaptor.capture());
-
-        HttpHeaders headers = new HttpHeaders();
-        headersCaptor.getValue().accept(headers);
-
-        assertThat(headers.getFirst(CorrelationIdFilter.CORRELATION_ID_HEADER)).isEqualTo("test-correlation-id");
-    }
-
-    @Test
-    void fetchJsonNode_noCorrelationIdInMdc_doesNotSetHeader() throws Exception {
-        MDC.clear();
-        JsonNode mockNode = mock(JsonNode.class);
-        when(responseSpec.body(String.class)).thenReturn("{\"weather\": []}");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
-        client.fetchCurrentWeatherByCity("Kyiv");
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Consumer<HttpHeaders>> headersCaptor = ArgumentCaptor.forClass(Consumer.class);
-        verify(requestHeadersSpec).headers(headersCaptor.capture());
-
-        HttpHeaders headers = new HttpHeaders();
-        headersCaptor.getValue().accept(headers);
-
-        assertThat(headers.getFirst(CorrelationIdFilter.CORRELATION_ID_HEADER)).isNull();
     }
 
 }
