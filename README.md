@@ -131,8 +131,11 @@ This pulls the app image, applies Liquibase migrations on startup, and wires up 
 Once running, interactive API docs are available at:
 
 ```
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/swagger-ui.html   (Swagger UI)
+http://localhost:8080/docs.html         (Scalar)
 ```
+
+Both serve the same OpenAPI spec — Scalar is the newer, cleaner UI, while Swagger UI is kept available for anyone who prefers it.
 
 REST endpoints are namespaced under `/api/v1/` (e.g. `/api/v1/weather/city`, `/api/v1/locations/my`, `/api/v1/users`).
 
