@@ -19,6 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Default {@link UserService} implementation backed by {@link UserRepository}.
+ * Owns password hashing on create/update and the uniqueness check that
+ * guards email changes.
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -70,6 +75,13 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(user);
     }
 
+    /**
+     * Updates profile fields. If the email is being changed, re-checks
+     * uniqueness first (the current email is exempt from its own
+     * uniqueness check). The password is only re-hashed and updated when a
+     * non-blank new password is supplied; otherwise the existing hash is
+     * left untouched.
+     */
     @Override
     @Transactional
     public UserDto update(UUID id, UpdateUserDto updateUserDto) {
