@@ -67,4 +67,26 @@ class CustomAuthSuccessHandlerTest {
         verify(redirectStrategy, never()).sendRedirect(any(), any(), eq("/dashboard"));
     }
 
+    @Test
+    void onAuthenticationSuccess_withUnsafeRedirectParam_logsWarningAndDoesNotRedirect() throws IOException, ServletException {
+        String unsafeUrl = "https://malicious-site.com/steal-session";
+        when(request.getParameter("redirect")).thenReturn(unsafeUrl);
+        handler.setRedirectStrategy(redirectStrategy);
+
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(redirectStrategy, never()).sendRedirect(any(), any(), eq(unsafeUrl));
+    }
+
+    @Test
+    void onAuthenticationSuccess_withAnotherUnsafeRedirectParam_doesNotRedirect() throws IOException, ServletException {
+        String unsafeUrl = "//attacker.com";
+        when(request.getParameter("redirect")).thenReturn(unsafeUrl);
+        handler.setRedirectStrategy(redirectStrategy);
+
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(redirectStrategy, never()).sendRedirect(any(), any(), eq(unsafeUrl));
+    }
+
 }

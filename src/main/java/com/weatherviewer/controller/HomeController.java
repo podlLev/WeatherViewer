@@ -20,6 +20,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Thymeleaf controller for the main dashboard: lists the current user's
+ * saved locations (in the requested sort order) alongside their current
+ * weather, and handles deleting/favoriting locations from that page.
+ */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +33,13 @@ public class HomeController {
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
 
+    /**
+     * Renders the dashboard. Locations are fetched pre-sorted by
+     * {@code sort} ({@code nameAsc}, {@code nameDesc}, {@code favoriteFirst},
+     * {@code favoritesOnly}, or the default {@code date}), then current
+     * weather is fetched for all of them in parallel to keep page load fast
+     * when a user has many saved locations.
+     */
     @GetMapping("/")
     public String home(Model model, @AuthenticationPrincipal SecUser user,
                        @RequestParam(required = false, defaultValue = "date") String sort) {
@@ -58,6 +70,7 @@ public class HomeController {
         return "home";
     }
 
+    /** Deletes a saved location (ownership-checked) and redirects back to the dashboard preserving the current sort. */
     @DeleteMapping("/locations/{id}")
     public String deleteLocation(@PathVariable UUID id,
                                  @AuthenticationPrincipal SecUser user,

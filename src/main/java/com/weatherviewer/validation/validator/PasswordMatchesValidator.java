@@ -7,6 +7,12 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.util.Objects;
 
+/**
+ * Backs {@link PasswordMatches}. Rejects a {@code null} DTO outright; when
+ * {@code password} and {@code repeatPassword} differ, attaches the
+ * violation to the {@code repeatPassword} field specifically (rather than
+ * the class-level default) so it surfaces next to the right form field.
+ */
 public class PasswordMatchesValidator implements ConstraintValidator<PasswordMatches, CreateUserDto> {
 
     @Override

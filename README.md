@@ -52,7 +52,7 @@ WeatherViewer is a personal weather dashboard for tracking the places you care a
 | Migrations       | Liquibase                                                                                |
 | Caching          | Redis (Spring Cache)                                                                     |
 | Mapping          | MapStruct                                                                                |
-| API docs         | springdoc-openapi (Swagger UI)                                                           |
+| API docs         | springdoc-openapi (Swagger UI & Scalar)                                                  |
 | Build tool       | Maven                                                                                    |
 | Testing          | JUnit, Spring Boot Test, Spring Security Test, H2 (in-memory test DB), JaCoCo (coverage) |
 | Containerization | Docker, Docker Compose                                                                   |
@@ -128,11 +128,13 @@ This pulls the app image, applies Liquibase migrations on startup, and wires up 
 
 ## API Documentation
 
-Once running, interactive API docs are available at:
+The project provides interactive API documentation using both OpenAPI (Swagger UI) and the modern Scalar interface:
 
-```
-http://localhost:8080/swagger-ui.html
-```
+| Platform         | Path                     | Description                                                         |
+|:-----------------|:-------------------------|:--------------------------------------------------------------------|
+| **Scalar**       | `/scalar`                | Modern, clean, and highly interactive API client and documentation. |
+| **Swagger UI**   | `/swagger-ui/index.html` | Classic Swagger interface to explore and test endpoints.            |
+| **OpenAPI Spec** | `/v3/api-docs`           | Raw OpenAPI 3.0 specification in JSON format.                       |
 
 REST endpoints are namespaced under `/api/v1/` (e.g. `/api/v1/weather/city`, `/api/v1/locations/my`, `/api/v1/users`).
 

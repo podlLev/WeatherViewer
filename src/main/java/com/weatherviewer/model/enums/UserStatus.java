@@ -3,6 +3,9 @@ package com.weatherviewer.model.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Lifecycle state of a {@link com.weatherviewer.model.User} account.
+ */
 @Getter
 @RequiredArgsConstructor
 public enum UserStatus {

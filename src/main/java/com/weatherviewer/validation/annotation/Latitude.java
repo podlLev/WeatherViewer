@@ -6,6 +6,10 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Validates that a {@code Double}/{@code double} field or parameter is a
+ * physically valid latitude (-90 to 90 degrees). See {@link LatitudeValidator}.
+ */
 @Documented
 @Constraint(validatedBy = LatitudeValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })

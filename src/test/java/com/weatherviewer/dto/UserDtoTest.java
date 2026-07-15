@@ -26,7 +26,6 @@ class UserDtoTest {
                 .setId(UUID.randomUUID())
                 .setUsername("john_doe")
                 .setEmail("john@example.com")
-                .setPassword("Secure1@")
                 .setStatus(UserStatus.ACTIVE)
                 .setRole(Role.USER)
                 .setLocations(List.of())
@@ -90,48 +89,6 @@ class UserDtoTest {
     void email_exceedsMaxLength_failsValidation() {
         UserDto dto = validDto().setEmail("a".repeat(145) + "@x.com");
         assertFieldHasViolation(validator, dto, "email");
-    }
-
-    @Test
-    void password_null_failsValidation() {
-        UserDto dto = validDto().setPassword(null);
-        assertFieldHasViolation(validator, dto, "password");
-    }
-
-    @Test
-    void password_blank_failsValidation() {
-        UserDto dto = validDto().setPassword("");
-        assertFieldHasViolation(validator, dto, "password");
-    }
-
-    @Test
-    void password_noUpperCase_failsValidation() {
-        UserDto dto = validDto().setPassword("secure1@");
-        assertFieldHasViolation(validator, dto, "password");
-    }
-
-    @Test
-    void password_noDigit_failsValidation() {
-        UserDto dto = validDto().setPassword("Secure@@");
-        assertFieldHasViolation(validator, dto, "password");
-    }
-
-    @Test
-    void password_noSpecialChar_failsValidation() {
-        UserDto dto = validDto().setPassword("Secure11");
-        assertFieldHasViolation(validator, dto, "password");
-    }
-
-    @Test
-    void password_tooShort_failsValidation() {
-        UserDto dto = validDto().setPassword("Se1@");
-        assertFieldHasViolation(validator, dto, "password");
-    }
-
-    @Test
-    void password_exceedsMaxLength_failsValidation() {
-        UserDto dto = validDto().setPassword("Secure1@" + "a".repeat(65));
-        assertFieldHasViolation(validator, dto, "password");
     }
 
     @Test
