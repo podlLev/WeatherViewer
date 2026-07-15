@@ -17,6 +17,16 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
+/**
+ * Core Spring Security configuration.
+ * <p>
+ * Sets up cookie-based form login (email/password against
+ * {@link com.weatherviewer.security.UserDetailsServiceImpl}), CSRF
+ * protection via a readable {@code XSRF-TOKEN} cookie, session-based
+ * logout, and the app's public vs. authenticated URL rules. Also inserts
+ * {@link RateLimitingFilter} into the chain and exposes the
+ * {@link PasswordEncoder} used everywhere passwords are hashed or checked.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -27,6 +37,13 @@ public class SecurityConfig {
     private final CustomAuthFailureHandler customAuthFailureHandler;
     private final RateLimitingFilter rateLimitingFilter;
 
+    /**
+     * Defines the security filter chain: public routes (sign-in/up, static
+     * assets, actuator health, API docs) vs. everything else requiring
+     * authentication; form login wired to {@link #customAuthSuccessHandler}/
+     * {@link #customAuthFailureHandler}; session logout at {@code /sign-out};
+     * and rate limiting inserted right after Spring's own login filter.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -60,11 +77,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /** Exposes Spring Security's default {@link AuthenticationManager}, used by {@link com.weatherviewer.service.LoginService}. */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /** BCrypt password encoder (strength 12) used to hash and verify all stored passwords. */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
