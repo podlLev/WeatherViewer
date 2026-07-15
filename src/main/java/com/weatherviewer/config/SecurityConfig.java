@@ -51,8 +51,16 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/sign-in", "/sign-up", "/sign-in-failure", "/css/**", "/images/**", "/js/**", "/actuator/health", "/actuator/health/**").permitAll()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**", "/docs.html").permitAll()
+                        .requestMatchers(
+                                "/sign-in", "/sign-up", "/sign-in-failure",
+                                "/css/**", "/images/**", "/js/**",
+                                "/actuator/health", "/actuator/health/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/swagger-ui.html", "/swagger-ui/**",
+                                "/v3/api-docs", "/v3/api-docs/**",
+                                "/scalar", "/scalar/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
