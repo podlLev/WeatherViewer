@@ -19,6 +19,18 @@ import org.springframework.web.servlet.support.SessionFlashMapManager;
 import java.io.IOException;
 import java.util.Comparator;
 
+/**
+ * Servlet filter that enforces per-client request rate limits, backed by
+ * {@link RedisFixedWindowRateLimiter}.
+ * <p>
+ * Clients are identified by authenticated user ID when available, falling
+ * back to client IP (honoring {@code X-Forwarded-For}) for anonymous
+ * requests. The applicable limit/window is chosen by the longest matching
+ * {@link RateLimitProperties.Rule#getPathPrefix()}, falling back to the
+ * configured default. When the limit is exceeded, API requests receive a
+ * JSON 429 response and browser requests are redirected back with a flash
+ * error message. Runs first in the filter chain via {@code @Order(1)}.
+ */
 @RequiredArgsConstructor
 @Slf4j
 @Order(1)
@@ -69,6 +81,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /** Treats {@code /api/**} paths, or any request that accepts JSON, as an API request. */
     private boolean isApiRequest(HttpServletRequest request, String path) {
         if (path.startsWith(API_PATH_PREFIX)) {
             return true;
@@ -77,6 +90,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return accept != null && accept.contains("application/json");
     }
 
+    /** Writes a minimal 429 JSON body for API clients. */
     private void writeJsonTooManyRequests(HttpServletResponse response, long retryAfterSeconds) throws IOException {
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType("application/json");
@@ -85,6 +99,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         );
     }
 
+    /** Redirects browser requests back to the same path with a flash-scoped, user-friendly error message. */
     private void redirectWithFriendlyMessage(HttpServletRequest request,
                                              HttpServletResponse response,
                                              String path) {
@@ -98,6 +113,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         response.setHeader("Location", path);
     }
 
+    /** Picks the longest matching path-prefix rule for the request, or the configured default if none match. */
     private RateLimitProperties.Rule resolveRule(String path) {
         return properties.getRules().stream()
                 .filter(rule -> rule.getPathPrefix() != null && path.startsWith(rule.getPathPrefix()))
@@ -105,6 +121,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                 .orElseGet(this::defaultRule);
     }
 
+    /** Builds an unnamed rule from the configured default limit/window. */
     private RateLimitProperties.Rule defaultRule() {
         RateLimitProperties.Rule fallback = new RateLimitProperties.Rule();
         fallback.setPathPrefix(null);
@@ -113,6 +130,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return fallback;
     }
 
+    /** Keys authenticated requests by user ID, anonymous requests by client IP. */
     private String resolveClientKey(HttpServletRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -124,6 +142,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return "ip:" + resolveClientIp(request);
     }
 
+    /** Prefers the first {@code X-Forwarded-For} entry (if present) over the raw socket address, for use behind a proxy. */
     private String resolveClientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (forwardedFor != null && !forwardedFor.isBlank()) {
