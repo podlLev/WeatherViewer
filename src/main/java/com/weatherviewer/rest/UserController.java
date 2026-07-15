@@ -26,7 +26,25 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @version 0.0.1
+ * REST controller for managing system user accounts.
+ * <p>
+ * This controller handles administrative actions for user provisioning and maintenance.
+ * <b>Security Note:</b> Unlike other controllers, the entire controller is secured with
+ * {@code @PreAuthorize("hasAuthority('users:write')")}, meaning all operations
+ * (including read-only lists) require administrator-level privileges.
+ * <p>
+ * Provided administrative capabilities include:
+ * <ul>
+ * <li><b>User Provisioning:</b> Direct creation of new accounts with password validation.</li>
+ * <li><b>Account Inspection:</b> Searching and listing active users by their unique ID or email address.</li>
+ * <li><b>Profile Maintenance:</b> Modifying personal details and optionally resetting passwords.</li>
+ * <li><b>Access Control:</b> Promoting or demoting user roles between {@code USER} and {@code ADMIN}.</li>
+ * <li><b>Account Deletion:</b> Removing user profiles from the system.</li>
+ * </ul>
+ *
+ * @author Lev Pidlisnyi
+ * @version 1.0.0
+ * @since 2026
  */
 @RestController
 @RequestMapping("/api/v1/users")

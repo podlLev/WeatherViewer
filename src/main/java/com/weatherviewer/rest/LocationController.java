@@ -32,7 +32,18 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @version 0.0.1
+ * REST controller for managing geographical locations.
+ * * Provides API endpoints categorized into two main groups:
+ * <ul>
+ * <li><b>My Locations:</b> Endpoints under {@code /my} for authenticated users
+ * to manage their personal saved locations.</li>
+ * <li><b>Admin Locations:</b> Administrative endpoints requiring {@code 'users:write'}
+ * authority to view, create, or delete locations for any user in the system.</li>
+ * </ul>
+ *
+ * @author Lev Pidlisnyi
+ * @version 1.0.0
+ * @since 2026
  */
 @RestController
 @RequestMapping("/api/v1/locations")
