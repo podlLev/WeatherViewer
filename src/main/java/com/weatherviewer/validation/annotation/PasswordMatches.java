@@ -6,6 +6,10 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Class-level constraint verifying that a DTO's {@code password} and
+ * {@code repeatPassword} fields are equal. See {@link PasswordMatchesValidator}.
+ */
 @Documented
 @Constraint(validatedBy = PasswordMatchesValidator.class)
 @Target({ ElementType.TYPE })
