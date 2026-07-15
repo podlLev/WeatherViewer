@@ -16,6 +16,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Default {@link LocationService} implementation backed by {@link LocationRepository}.
+ * Ownership checks (a location can only be deleted or favorited by its
+ * owner) are enforced here rather than at the repository level.
+ */
 @Service
 @RequiredArgsConstructor
 public class LocationServiceImpl implements LocationService {
@@ -33,6 +38,7 @@ public class LocationServiceImpl implements LocationService {
         return locationRepository.save(location).getId();
     }
 
+    /** Rounds a coordinate to 5 decimal places (~1.1m precision) for consistent duplicate-detection. */
     private Double round(Double value) {
         return value != null ? Math.round(value * 100000.0) / 100000.0 : null;
     }
@@ -70,6 +76,10 @@ public class LocationServiceImpl implements LocationService {
         return locationMapper.toDto(location);
     }
 
+    /**
+     * Deletes a location after verifying it actually belongs to
+     * {@code userId}, preventing one user from deleting another's location.
+     */
     @Override
     @Transactional
     public void deleteByIdAndUserId(UUID id, UUID userId) {
@@ -109,6 +119,11 @@ public class LocationServiceImpl implements LocationService {
         setFavorite(locationId, userId, true);
     }
 
+    /**
+     * Shared implementation for {@link #addToFavorite} and
+     * {@link #removeFromFavorite}: verifies ownership, then toggles the
+     * favorite flag.
+     */
     private void setFavorite(UUID locationId, UUID userId, boolean favorite) {
         Location location = getEntityById(locationId);
         if (!Objects.equals(location.getUser().getId(), userId)) {

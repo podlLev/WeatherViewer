@@ -20,6 +20,13 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
+/**
+ * Default {@link WeatherApiService} implementation. Pulls raw JSON through
+ * {@link WeatherApiCache} (which handles the actual caching/HTTP call),
+ * maps it into DTOs via {@link WeatherApiMapper}, and, for daily forecasts,
+ * collapses the provider's 3-hour entries into per-day summaries via
+ * {@link WeatherAggregatorHelper}.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -50,6 +57,7 @@ public class WeatherApiServiceImpl implements WeatherApiService {
         return fetchWeather(() -> weatherApiCache.fetchCurrentWeatherByCity(city));
     }
 
+    /** Fetches raw JSON via the given supplier and maps it to a single {@link WeatherDto}. */
     private WeatherDto fetchWeather(Supplier<JsonNode> fetcher) {
         return weatherApiMapper.toWeatherDto(fetcher.get());
     }
@@ -80,6 +88,12 @@ public class WeatherApiServiceImpl implements WeatherApiService {
         return fetchForecastList(() -> weatherApiCache.fetchForecastByCity(city));
     }
 
+    /**
+     * Fetches raw forecast JSON and maps its {@code "list"} array into
+     * {@link WeatherDto} entries.
+     *
+     * @throws ExternalHttpCallException if the response has no array {@code "list"} field
+     */
     private List<WeatherDto> fetchForecastList(Supplier<JsonNode> fetcher) {
         JsonNode listNode = fetcher.get().path("list");
         if (listNode.isMissingNode() || !listNode.isArray()) {
@@ -88,6 +102,7 @@ public class WeatherApiServiceImpl implements WeatherApiService {
         return mapJsonNodeToList(listNode, weatherApiMapper::toWeatherDto);
     }
 
+    /** Maps every element of a JSON array node using the given mapping function. */
     private <T> List<T> mapJsonNodeToList(JsonNode arrayNode, Function<JsonNode, T> mapper) {
         return StreamSupport.stream(arrayNode.spliterator(), false)
                 .map(mapper)

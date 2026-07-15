@@ -38,7 +38,7 @@ class OpenApiDocumentationIntegrationTest {
 
     @Test
     void scalarDocsPageIsReachableWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/docs.html"))
+        mockMvc.perform(get("/scalar"))
                 .andExpect(status().isOk());
     }
 

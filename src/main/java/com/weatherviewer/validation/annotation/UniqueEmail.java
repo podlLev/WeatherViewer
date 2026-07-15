@@ -6,6 +6,10 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Validates that an email address is not already registered to another
+ * account. See {@link UniqueEmailValidator}.
+ */
 @Documented
 @Constraint(validatedBy = UniqueEmailValidator.class)
 @Target({ ElementType.TYPE, ElementType.FIELD })

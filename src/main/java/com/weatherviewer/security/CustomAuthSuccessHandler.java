@@ -12,11 +12,25 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * Post-login redirect handler.
+ * <p>
+ * If the request carries a {@code redirect} query parameter (e.g. the user
+ * was bounced to the login page from a deep link), this handler sends them
+ * there instead of the default "last requested page" — but only after
+ * validating it with {@link SafeRedirectUtils#isSafeRedirect(String)} to
+ * prevent open-redirect attacks. Falls back to the standard saved-request
+ * behavior otherwise.
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
+    /**
+     * Redirects to a validated {@code redirect} parameter if present and
+     * safe; otherwise delegates to the default saved-request redirect.
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {

@@ -6,6 +6,11 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Class-level constraint on {@link com.weatherviewer.dto.AddLocationDto}
+ * verifying the owning user hasn't already saved a location with the same
+ * name or the same coordinates. See {@link UniqueLocationValidator}.
+ */
 @Documented
 @Constraint(validatedBy = UniqueLocationValidator.class)
 @Target(ElementType.TYPE)

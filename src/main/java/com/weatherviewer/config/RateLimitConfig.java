@@ -8,6 +8,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Wires up the {@link RateLimitingFilter} bean from {@link RateLimitProperties}
+ * and {@link RedisFixedWindowRateLimiter}. The filter itself is registered
+ * into the security filter chain in {@link SecurityConfig}.
+ */
 @Configuration
 @EnableConfigurationProperties(RateLimitProperties.class)
 @RequiredArgsConstructor

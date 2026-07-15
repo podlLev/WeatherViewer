@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
+/**
+ * Thymeleaf controller for the hourly/daily forecast page of one of the
+ * current user's saved locations.
+ */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -24,6 +28,12 @@ public class ForecastController {
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
 
+    /**
+     * Renders the forecast page for the saved location at the given
+     * coordinates, owned by the authenticated user.
+     *
+     * @throws com.weatherviewer.exception.notfound.LocationNotFoundException if the user has no saved location there
+     */
     @GetMapping("/forecast")
     public String getForecast(@RequestParam("lat") @Latitude double latitude,
                               @RequestParam("lon") @Longitude double longitude,

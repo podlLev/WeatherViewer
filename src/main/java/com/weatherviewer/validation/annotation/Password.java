@@ -6,6 +6,10 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Validates that a password string meets the app's minimum strength rules
+ * (length plus a mix of character types). See {@link PasswordValidator}.
+ */
 @Documented
 @Constraint(validatedBy = PasswordValidator.class)
 @Target(ElementType.FIELD)

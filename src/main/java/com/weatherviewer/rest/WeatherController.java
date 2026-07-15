@@ -25,7 +25,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @version 0.0.1
+ * REST controller for retrieving current weather data, forecasts, and geocoding information.
+ * <p>
+ * This controller acts as a bridge to the upstream weather provider (OpenWeatherMap)
+ * and offers endpoints for:
+ * <ul>
+ * <li><b>Current Weather:</b> Fetching actual conditions by saved location, city name, or coordinates.</li>
+ * <li><b>Daily Forecasts:</b> Fetching aggregated 5-day daily forecasts.</li>
+ * <li><b>Hourly Forecasts:</b> Fetching detailed 5-day forecasts in 3-hour intervals.</li>
+ * <li><b>Geocoding:</b> Searching and disambiguating city names to get their exact coordinates.</li>
+ * </ul>
+ * <p>
+ * All endpoints are rate-limited and require valid session authentication.
+ *
+ * @author Lev Pidlisnyi
+ * @version 1.0.0
+ * @since 2026
  */
 @RestController
 @RequestMapping("/api/v1/weather")
