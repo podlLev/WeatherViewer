@@ -21,7 +21,7 @@ class OpenApiDocumentationIntegrationTest {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
-                .andExpect(jsonPath("$.openapi").value("3.0.1"))
+                .andExpect(jsonPath("$.openapi").value("3.1.0"))
                 .andExpect(jsonPath("$.info.title").value("WeatherViewer API"))
                 .andExpect(jsonPath("$.paths['/api/v1/weather/city']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/locations/my']").exists())
