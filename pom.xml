@@ -10,9 +10,9 @@
     </parent>
     <groupId>com</groupId>
     <artifactId>WeatherViewer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.1.0-RELEASE</version>
     <name>WeatherViewer</name>
-    <description>WeatherViewer</description>
+    <description>A Spring Boot application for checking weather forecasts, managing favorite locations, and tracking request metrics with built-in rate limiting.</description>
     <url/>
     <licenses>
         <license>
@@ -202,6 +202,20 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <doclint>none</doclint>
+                    <failOnError>false</failOnError>
+                    <encoding>UTF-8</encoding>
+                    <sourcepath>${project.basedir}/src/main/java</sourcepath>
+
+                    <doctitle>WeatherViewer ${project.version}</doctitle>
+                    <windowtitle>WeatherViewer ${project.version}</windowtitle>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -26,7 +26,7 @@ import java.util.Comparator;
  * Clients are identified by authenticated user ID when available, falling
  * back to client IP (honoring {@code X-Forwarded-For}) for anonymous
  * requests. The applicable limit/window is chosen by the longest matching
- * {@link RateLimitProperties.Rule#getPathPrefix()}, falling back to the
+ * {@code Rule#getPathPrefix()}, falling back to the
  * configured default. When the limit is exceeded, API requests receive a
  * JSON 429 response and browser requests are redirected back with a flash
  * error message. Runs first in the filter chain via {@code @Order(1)}.
