@@ -2,6 +2,10 @@ package com.weatherviewer.exception;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * A single field-level validation error, returned to REST API clients
+ * as part of a 422 Unprocessable Entity response body.
+ */
 @Schema(description = "A single field validation error")
 public record FieldError(
 
