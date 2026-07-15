@@ -22,6 +22,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Thymeleaf controller for geocoding city searches and saving a chosen
+ * result to the signed-in user's location list.
+ */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -31,6 +35,11 @@ public class SearchController {
     private final LocationService locationService;
     private final Validator validator;
 
+    /**
+     * Geocodes the free-text query {@code q} via
+     * {@link WeatherApiService#getCitiesByName(String)} and renders the
+     * search results page with the matching candidate locations.
+     */
     @GetMapping("/search")
     public String searchResults(@RequestParam("q") String query, Model model,
                                 @AuthenticationPrincipal SecUser user) {
@@ -45,6 +54,15 @@ public class SearchController {
         return "search";
     }
 
+    /**
+     * Saves a chosen search result as a new location for the signed-in
+     * user. The submitted {@code userId} is always overwritten with the
+     * caller's own ID before validation, so a location can only ever be
+     * added to the signer's own account. On validation failure (blank
+     * name, out-of-range coordinates, or a duplicate name/coordinates for
+     * this user), the errors are flashed and the request redirects back to
+     * the dashboard without saving anything.
+     */
     @PostMapping("/search/add")
     public String addLocation(@ModelAttribute("addLocation") AddLocationDto addLocationDto,
                               @AuthenticationPrincipal SecUser secUser,

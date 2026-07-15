@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Thymeleaf controller for the current user's account profile page:
+ * displaying stored profile fields and applying edits to them.
+ */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -23,6 +27,7 @@ public class ProfileController {
 
     private final UserService userService;
 
+    /** Renders the profile page, pre-populated with the signed-in user's current details. */
     @GetMapping("/profile")
     public String getProfile(@AuthenticationPrincipal SecUser user, Model model) {
         log.info("Displaying profile page for user '{}'", user.getUsername());
@@ -34,6 +39,11 @@ public class ProfileController {
         return "profile";
     }
 
+    /**
+     * Handles profile update submissions. On validation failure, re-renders
+     * the profile page with the errors; on success, applies the update,
+     * flashes a confirmation message, and redirects back to {@code /profile}.
+     */
     @PostMapping("/profile")
     public String updateProfile(@Valid @ModelAttribute("user") UpdateUserDto dto,
                                 BindingResult bindingResult,
