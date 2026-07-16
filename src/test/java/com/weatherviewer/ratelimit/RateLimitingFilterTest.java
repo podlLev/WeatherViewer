@@ -398,6 +398,22 @@ class RateLimitingFilterTest {
     }
 
     @Test
+    void clientKey_trustedProxyWithNoForwardedForHeader_fallsBackToRemoteAddress() throws Exception {
+        properties.setTrustedProxies(List.of("203.0.113.9"));
+        filter.initTrustedProxies();
+
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
+        request.setRemoteAddr("203.0.113.9");
+
+        filter.doFilterInternal(request, new MockHttpServletResponse(), filterChain);
+
+        verify(rateLimiter).tryConsume(contains("ip:203.0.113.9"), anyInt(), anyInt());
+    }
+
+    @Test
     void clientKey_blankForwardedForFallsBackToRemoteAddress() throws Exception {
         properties.setTrustedProxies(List.of("203.0.113.9"));
         filter.initTrustedProxies();
