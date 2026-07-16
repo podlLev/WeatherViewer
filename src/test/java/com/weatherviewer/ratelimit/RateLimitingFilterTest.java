@@ -38,6 +38,7 @@ class RateLimitingFilterTest {
         properties.setDefaultLimit(100);
         properties.setDefaultWindowSeconds(60);
         filter = new RateLimitingFilter(rateLimiter, properties);
+        filter.initTrustedProxies();
     }
 
     @AfterEach
@@ -263,12 +264,81 @@ class RateLimitingFilterTest {
     }
 
     @Test
-    void clientKey_xForwardedForHeader_takesPrecedenceOverRemoteAddress() throws Exception {
+    void clientKey_xForwardedForHeader_trustedProxy_takesPrecedenceOverRemoteAddress() throws Exception {
+        properties.setTrustedProxies(List.of("10.0.0.1"));
+        filter.initTrustedProxies();
+
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
                 .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
         request.setRemoteAddr("10.0.0.1");
         request.addHeader("X-Forwarded-For", "198.51.100.7, 10.0.0.1");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(rateLimiter).tryConsume(org.mockito.ArgumentMatchers.contains("ip:198.51.100.7"), anyInt(), anyInt());
+    }
+
+    @Test
+    void clientKey_xForwardedForHeader_untrustedRemoteAddr_isIgnored() throws Exception {
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
+        request.setRemoteAddr("203.0.113.5");
+        request.addHeader("X-Forwarded-For", "198.51.100.7");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(rateLimiter).tryConsume(org.mockito.ArgumentMatchers.contains("ip:203.0.113.5"), anyInt(), anyInt());
+        verify(rateLimiter, never()).tryConsume(org.mockito.ArgumentMatchers.contains("198.51.100.7"), anyInt(), anyInt());
+    }
+
+    @Test
+    void clientKey_xForwardedForHeader_remoteAddrOutsideConfiguredCidr_isIgnored() throws Exception {
+        properties.setTrustedProxies(List.of("10.0.0.0/24"));
+        filter.initTrustedProxies();
+
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
+        request.setRemoteAddr("11.0.0.5");
+        request.addHeader("X-Forwarded-For", "198.51.100.7");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(rateLimiter).tryConsume(org.mockito.ArgumentMatchers.contains("ip:11.0.0.5"), anyInt(), anyInt());
+    }
+
+    @Test
+    void clientKey_xForwardedForHeader_remoteAddrInsideConfiguredCidr_isHonored() throws Exception {
+        properties.setTrustedProxies(List.of("10.0.0.0/24"));
+        filter.initTrustedProxies();
+
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
+        request.setRemoteAddr("10.0.0.42");
+        request.addHeader("X-Forwarded-For", "198.51.100.7");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(rateLimiter).tryConsume(org.mockito.ArgumentMatchers.contains("ip:198.51.100.7"), anyInt(), anyInt());
+    }
+
+    @Test
+    void clientKey_multipleConfiguredTrustedProxies_matchesAnyOfThem() throws Exception {
+        properties.setTrustedProxies(List.of("192.168.1.1", "10.0.0.0/8"));
+        filter.initTrustedProxies();
+
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/sign-in");
+        request.setRemoteAddr("10.20.30.40");
+        request.addHeader("X-Forwarded-For", "198.51.100.7");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         filter.doFilterInternal(request, response, filterChain);
@@ -329,6 +399,9 @@ class RateLimitingFilterTest {
 
     @Test
     void clientKey_blankForwardedForFallsBackToRemoteAddress() throws Exception {
+        properties.setTrustedProxies(List.of("203.0.113.9"));
+        filter.initTrustedProxies();
+
         when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
                 .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 0, 60));
 

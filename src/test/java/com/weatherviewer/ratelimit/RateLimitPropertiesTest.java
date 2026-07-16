@@ -37,6 +37,13 @@ class RateLimitPropertiesTest {
     }
 
     @Test
+    void defaults_trustedProxiesIsEmptyButNotNull() {
+        RateLimitProperties properties = new RateLimitProperties();
+
+        assertThat(properties.getTrustedProxies()).isNotNull().isEmpty();
+    }
+
+    @Test
     void setters_overrideDefaults() {
         RateLimitProperties properties = new RateLimitProperties();
 
@@ -63,6 +70,26 @@ class RateLimitPropertiesTest {
         assertThat(properties.getRules().get(0).getPathPrefix()).isEqualTo("/sign-in");
         assertThat(properties.getRules().get(0).getLimit()).isEqualTo(10);
         assertThat(properties.getRules().get(0).getWindowSeconds()).isEqualTo(60);
+    }
+
+    @Test
+    void setTrustedProxies_storesProvidedValues() {
+        RateLimitProperties properties = new RateLimitProperties();
+
+        properties.setTrustedProxies(List.of("10.0.0.0/8", "127.0.0.1"));
+
+        assertThat(properties.getTrustedProxies())
+                .hasSize(2)
+                .containsExactly("10.0.0.0/8", "127.0.0.1");
+    }
+
+    @Test
+    void setTrustedProxies_emptyListIsAllowed() {
+        RateLimitProperties properties = new RateLimitProperties();
+
+        properties.setTrustedProxies(List.of());
+
+        assertThat(properties.getTrustedProxies()).isEmpty();
     }
 
     @Test

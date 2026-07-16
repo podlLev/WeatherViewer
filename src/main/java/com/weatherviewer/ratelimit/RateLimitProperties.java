@@ -31,6 +31,13 @@ public class RateLimitProperties {
     /** Path-prefix-specific overrides, checked longest-prefix-first. */
     private List<Rule> rules = new ArrayList<>();
 
+    /**
+     * CIDR ranges or exact IPs of proxies/load balancers allowed to set
+     * X-Forwarded-For. Requests whose immediate peer isn't in this list have
+     * X-Forwarded-For ignored entirely — it's treated as attacker-controlled.
+     */
+    private List<String> trustedProxies = new ArrayList<>();
+
     /** A single rate limit rule scoped to requests under {@link #pathPrefix}. */
     @Getter
     @Setter
