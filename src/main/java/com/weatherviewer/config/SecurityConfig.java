@@ -88,6 +88,20 @@ public class SecurityConfig {
                         .sessionRegistry(sessionRegistry())
                         .expiredUrl("/sign-in?expired")
                 )
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; "
+                                        + "script-src 'self' https://cdn.jsdelivr.net; "
+                                        + "style-src 'self' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com 'unsafe-inline'; "
+                                        + "font-src 'self' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com data:; "
+                                        + "img-src 'self' data:; "
+                                        + "connect-src 'self'; "
+                                        + "object-src 'none'; "
+                                        + "base-uri 'self'; "
+                                        + "form-action 'self'; "
+                                        + "frame-ancestors 'none'"
+                        ))
+                )
                 .addFilterAfter(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

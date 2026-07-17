@@ -6,4 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.show();
         }
     });
+
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => sortSelect.form.submit());
+    }
 });
