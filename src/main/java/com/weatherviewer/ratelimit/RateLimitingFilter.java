@@ -1,6 +1,7 @@
 package com.weatherviewer.ratelimit;
 
 import com.weatherviewer.security.SecUser;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,12 +13,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.support.SessionFlashMapManager;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Servlet filter that enforces per-client request rate limits, backed by
@@ -42,6 +45,21 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private final RedisFixedWindowRateLimiter rateLimiter;
     private final RateLimitProperties properties;
+    private List<IpAddressMatcher> trustedProxyMatchers;
+
+    /**
+     * Parses {@link RateLimitProperties#getTrustedProxies()} into
+     * {@link IpAddressMatcher} instances once at startup, since each
+     * matcher parses its CIDR/IP on construction and shouldn't be rebuilt
+     * per-request. Package-private so tests can re-invoke it after
+     * mutating {@link #properties} directly, without a Spring context.
+     */
+    @PostConstruct
+    void initTrustedProxies() {
+        this.trustedProxyMatchers = properties.getTrustedProxies().stream()
+                .map(IpAddressMatcher::new)
+                .toList();
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -142,13 +160,24 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return "ip:" + resolveClientIp(request);
     }
 
-    /** Prefers the first {@code X-Forwarded-For} entry (if present) over the raw socket address, for use behind a proxy. */
+    /** Prefers X-Forwarded-For only when the immediate peer is a trusted proxy. */
     private String resolveClientIp(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
+        String remoteAddr = request.getRemoteAddr();
+
+        if (isTrustedProxy(remoteAddr)) {
+            String forwardedFor = request.getHeader("X-Forwarded-For");
+            if (forwardedFor != null && !forwardedFor.isBlank()) {
+                return forwardedFor.split(",")[0].trim();
+            }
         }
-        return request.getRemoteAddr();
+
+        return remoteAddr;
+    }
+
+    /** Checks whether {@code remoteAddr} matches any configured trusted-proxy CIDR/IP. */
+    private boolean isTrustedProxy(String remoteAddr) {
+        return trustedProxyMatchers.stream()
+                .anyMatch(matcher -> matcher.matches(remoteAddr));
     }
 
 }

@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 /**
  * Thin HTTP client for the OpenWeatherMap API (current weather, forecast,
@@ -29,6 +30,8 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherApiClient {
+
+    private static final Pattern APPID_PATTERN = Pattern.compile("(?i)([?&]appid=)[^&]*");
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
@@ -97,16 +100,21 @@ public class WeatherApiClient {
             return objectMapper.readTree(body);
         } catch (JsonProcessingException e) {
             String message = "Failed to parse JSON response from weather API service";
-            log.error("{} for URL: {}", message, url, e);
+            log.error("{} for URL: {}", message, maskApiKey(url), e);
             throw new ExternalHttpCallException(message);
         } catch (RestClientResponseException e) {
-            log.error("Weather API returned {} for URL: {}", e.getStatusCode(), url, e);
+            log.error("Weather API returned {} for URL: {}", e.getStatusCode(), maskApiKey(url), e);
             throw new ExternalHttpCallException("Weather API error: " + e.getStatusCode());
         } catch (Exception e) {
             String message = "External HTTP call failed due to network or connection issues";
-            log.error("{} for URL: {}", message, url, e);
+            log.error("{} for URL: {}", message, maskApiKey(url), e);
             throw new ExternalHttpCallException(message);
         }
+    }
+
+    /** Masks the {@code appid} query parameter so the API key never reaches application logs. */
+    private static String maskApiKey(String url) {
+        return APPID_PATTERN.matcher(url).replaceAll("$1***");
     }
 
     /** Builds a request URL for a city-name-based endpoint, with metric units and English descriptions. */

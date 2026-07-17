@@ -1,5 +1,8 @@
 services:
   weather_viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: podllev/weather-viewer:latest
     container_name: weather_viewer
     restart: always

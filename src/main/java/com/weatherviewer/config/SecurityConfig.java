@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -80,9 +82,42 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessUrl("/sign-in")
                 )
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                        .sessionRegistry(sessionRegistry())
+                        .expiredUrl("/sign-in?expired")
+                )
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; "
+                                        + "script-src 'self' https://cdn.jsdelivr.net; "
+                                        + "style-src 'self' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com 'unsafe-inline'; "
+                                        + "font-src 'self' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com data:; "
+                                        + "img-src 'self' data:; "
+                                        + "connect-src 'self'; "
+                                        + "object-src 'none'; "
+                                        + "base-uri 'self'; "
+                                        + "form-action 'self'; "
+                                        + "frame-ancestors 'none'"
+                        ))
+                )
                 .addFilterAfter(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Tracks each principal's active sessions so
+     * {@link org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy}
+     * can enforce {@code maximumSessions(1)}. Must be a singleton bean (not
+     * created inline) so the same instance is shared between the security
+     * filter chain and HttpSessionEventPublisher, which needs it to
+     * remove sessions from the registry when they're invalidated or expire.
+     */
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
     }
 
     /** Exposes Spring Security's default {@link AuthenticationManager}, used by {@link com.weatherviewer.service.LoginService}. */
