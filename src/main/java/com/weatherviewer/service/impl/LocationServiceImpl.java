@@ -8,6 +8,8 @@ import com.weatherviewer.model.Location;
 import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.service.LocationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,9 +46,8 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public List<LocationDto> getLocations() {
-        List<Location> locations = locationRepository.findAll();
-        return locationMapper.toDtoList(locations);
+    public Page<LocationDto> getLocations(Pageable pageable) {
+        return locationRepository.findAll(pageable).map(locationMapper::toDto);
     }
 
     @Override

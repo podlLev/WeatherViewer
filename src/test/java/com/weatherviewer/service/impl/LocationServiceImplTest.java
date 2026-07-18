@@ -12,6 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.ArrayList;
@@ -102,13 +105,14 @@ class LocationServiceImplTest {
 
     @Test
     void getLocations_returnsAllMapped() {
-        List<Location> locations = List.of(new Location());
-        List<LocationDto> dtos = List.of(new LocationDto());
+        Location location = new Location();
+        LocationDto dto = new LocationDto();
+        Pageable pageable = PageRequest.of(0, 20);
 
-        when(locationRepository.findAll()).thenReturn(locations);
-        when(locationMapper.toDtoList(locations)).thenReturn(dtos);
+        when(locationRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(location)));
+        when(locationMapper.toDto(location)).thenReturn(dto);
 
-        assertThat(service.getLocations()).isEqualTo(dtos);
+        assertThat(service.getLocations(pageable).getContent()).containsExactly(dto);
     }
 
     @Test

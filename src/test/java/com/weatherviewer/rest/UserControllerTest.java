@@ -17,6 +17,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -103,13 +105,13 @@ class UserControllerTest {
 
     @Test
     @WithMockUser(authorities = "users:write")
-    void getUsers_returns200AndList() throws Exception {
+    void getUsers_returns200AndPage() throws Exception {
         List<UserDto> dtos = List.of(new UserDto().setEmail("john@example.com"));
-        when(userService.getUsers()).thenReturn(dtos);
+        when(userService.getUsers(any(Pageable.class))).thenReturn(new PageImpl<>(dtos));
 
         mockMvc.perform(get("/api/v1/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].email").value("john@example.com"));
+                .andExpect(jsonPath("$.content[0].email").value("john@example.com"));
     }
 
     @Test
