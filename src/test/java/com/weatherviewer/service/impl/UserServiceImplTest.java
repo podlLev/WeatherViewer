@@ -16,6 +16,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -72,15 +75,16 @@ class UserServiceImplTest {
     }
 
     @Test
-    void getUsers_returnsMappedList() {
+    void getUsers_returnsMappedPage() {
         UUID id = UUID.randomUUID();
         User user = user(id);
         UserDto dto = new UserDto();
+        Pageable pageable = PageRequest.of(0, 20);
 
-        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(userRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(user)));
         when(userMapper.toDto(user)).thenReturn(dto);
 
-        assertThat(service.getUsers()).containsExactly(dto);
+        assertThat(service.getUsers(pageable).getContent()).containsExactly(dto);
     }
 
     @Test
