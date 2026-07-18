@@ -3,6 +3,8 @@ package com.weatherviewer.service;
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.model.Location;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,8 +23,13 @@ public interface LocationService {
      */
     UUID add(AddLocationDto addLocationDto);
 
-    /** Returns every saved location across all users (admin use). */
-    List<LocationDto> getLocations();
+    /**
+     * Returns saved locations across all users a page at a time (admin
+     * use). Unbounded {@code findAll()} doesn't scale once the location
+     * count grows past a trivial size, so this is the only way callers can
+     * list every location system-wide.
+     */
+    Page<LocationDto> getLocations(Pageable pageable);
 
     /**
      * Fetches the raw {@link Location} entity by ID.
