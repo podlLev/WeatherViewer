@@ -2,6 +2,7 @@ package com.weatherviewer.controller;
 
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.UserService;
@@ -50,7 +51,8 @@ class ProfileControllerTest {
                 "hashed",
                 Set.of(),
                 true,
-                "John Doe"
+                "John Doe",
+                UnitSystem.METRIC
         );
     }
 
@@ -94,6 +96,7 @@ class ProfileControllerTest {
     @Test
     void updateProfile_success_redirectsToProfile() throws Exception {
         SecUser user = secUser();
+        when(userService.getEntityById(user.getId())).thenReturn(userEntity(user.getId()));
 
         mockMvc.perform(post("/profile")
                         .with(user(user))

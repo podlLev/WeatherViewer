@@ -5,6 +5,7 @@ import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.service.helper.UnitConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,6 +33,7 @@ public class HomeController {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
+    private final UnitConverter unitConverter;
 
     /**
      * Renders the dashboard. Locations are fetched pre-sorted by
@@ -57,7 +59,8 @@ public class HomeController {
             Map<LocationDto, WeatherDto> locationWeatherMap = userLocations.parallelStream()
                     .collect(Collectors.toMap(
                             Function.identity(),
-                            weatherApiService::getWeatherByLocation,
+                            location -> unitConverter.toDisplayUnits(
+                                    weatherApiService.getWeatherByLocation(location), user.getUnits()),
                             (existing, replacement) -> existing,
                             LinkedHashMap::new
                     ));
@@ -67,6 +70,8 @@ public class HomeController {
 
         model.addAttribute("login", user.getFullName());
         model.addAttribute("sort", sort);
+        model.addAttribute("temperatureSymbol", unitConverter.temperatureSymbol(user.getUnits()));
+        model.addAttribute("windSpeedUnit", unitConverter.windSpeedUnit(user.getUnits()));
         return "home";
     }
 

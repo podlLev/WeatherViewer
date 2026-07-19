@@ -6,5 +6,6 @@
     <include file="liquibase/update/init.xml"/>
     <include file="liquibase/update/02-create-users-and-update-locations.xml"/>
     <include file="/liquibase/update/03-add-location-indexes.xml"/>
+    <include file="/liquibase/update/04-add-user-units.xml"/>
 
 </databaseChangeLog>

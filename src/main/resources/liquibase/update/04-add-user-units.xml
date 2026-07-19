@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog logicalFilePath="liquibase/changelog.xml" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="create-unit-system-type" author="Pidlisnyi Lev">
+        <sql>
+            CREATE TYPE unit_system AS ENUM ('METRIC','IMPERIAL');
+        </sql>
+    </changeSet>
+
+    <changeSet id="add-users-units-column" author="Pidlisnyi Lev">
+        <sql>
+            ALTER TABLE users ADD COLUMN units unit_system NOT NULL DEFAULT 'METRIC';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

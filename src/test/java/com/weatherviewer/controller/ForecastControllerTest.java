@@ -4,9 +4,12 @@ import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.dto.enums.TimeOfDay;
 import com.weatherviewer.dto.enums.WeatherCondition;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.service.helper.UnitConverter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,6 +41,24 @@ class ForecastControllerTest {
     @MockitoBean
     LocationService locationService;
 
+    @MockitoBean
+    UnitConverter unitConverter;
+
+    /**
+     * UnitConverter is real (unmocked) application logic in production;
+     * here it's stubbed to pass values through unchanged, since this test
+     * only needs to confirm ForecastController plumbs data into the model
+     * correctly, not that unit conversion math is right (that's covered
+     * separately). Without this, the mock would return null and break the
+     * existing hourlyForecast/dailyForecast assertions below.
+     */
+    @BeforeEach
+    void stubUnitConverterPassThrough() {
+        when(unitConverter.toDisplayUnits(anyList(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(unitConverter.temperatureSymbol(any())).thenReturn("°C");
+        when(unitConverter.windSpeedUnit(any())).thenReturn("m/s");
+    }
+
     private SecUser secUser() {
         return new SecUser(
                 UUID.randomUUID(),
@@ -43,7 +66,8 @@ class ForecastControllerTest {
                 "hashed",
                 Set.of(),
                 true,
-                "John Doe"
+                "John Doe",
+            UnitSystem.METRIC
         );
     }
 

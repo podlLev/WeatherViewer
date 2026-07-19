@@ -43,6 +43,14 @@
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
                         </div>
 
+                        <div class="form-floating mb-4">
+                            <select id="units" th:field="*{units}" class="form-select">
+                                <option value="METRIC">Metric (°C, m/s)</option>
+                                <option value="IMPERIAL">Imperial (°F, mph)</option>
+                            </select>
+                            <label for="units"><i class="bi bi-thermometer-half me-1"></i>Units</label>
+                        </div>
+
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg fw-bold">Save Changes</button>
                         </div>

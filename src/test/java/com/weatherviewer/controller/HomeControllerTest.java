@@ -4,6 +4,7 @@ import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.dto.enums.TimeOfDay;
 import com.weatherviewer.dto.enums.WeatherCondition;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
@@ -46,7 +47,8 @@ class HomeControllerTest {
                 "hashed",
                 Set.of(),
                 true,
-                "John Doe"
+                "John Doe",
+            UnitSystem.METRIC
         );
     }
 
