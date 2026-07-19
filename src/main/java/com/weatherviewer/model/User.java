@@ -1,6 +1,7 @@
 package com.weatherviewer.model;
 
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -49,6 +50,12 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "role")
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private Role role;
+
+    /** Preferred unit system (metric/imperial) for displaying weather data. Defaults to {@code METRIC}. */
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "unit_system")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private UnitSystem units = UnitSystem.METRIC;
 
     /** Locations saved by this user; removed automatically if the user is deleted. */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
