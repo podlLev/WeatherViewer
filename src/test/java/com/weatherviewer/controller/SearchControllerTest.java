@@ -2,6 +2,7 @@ package com.weatherviewer.controller;
 
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.GeoLocationDto;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
@@ -61,7 +62,8 @@ class SearchControllerTest {
                 "hashed",
                 Set.of(),
                 true,
-                "John Doe"
+                "John Doe",
+            UnitSystem.METRIC
         );
     }
 

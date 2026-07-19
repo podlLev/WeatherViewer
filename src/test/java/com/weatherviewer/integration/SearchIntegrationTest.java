@@ -4,6 +4,7 @@ import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.model.Location;
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.repository.UserRepository;
@@ -68,7 +69,8 @@ class SearchIntegrationTest {
                 savedUser.getPassword(),
                 Set.of(),
                 true,
-                savedUser.getFullName()
+                savedUser.getFullName(),
+            UnitSystem.METRIC
         );
     }
 
@@ -178,7 +180,8 @@ class SearchIntegrationTest {
                 .setRole(Role.USER));
         SecUser otherSecUser = new SecUser(
                 otherUser.getId(), otherUser.getEmail(), otherUser.getPassword(),
-                Set.of(), true, otherUser.getFullName()
+                Set.of(), true, otherUser.getFullName(),
+            UnitSystem.METRIC
         );
 
         mockMvc.perform(post("/search/add")

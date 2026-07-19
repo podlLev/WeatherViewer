@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.exception.notfound.LocationNotFoundException;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,17 +23,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(LocationController.class)
 @WithMockUser
@@ -59,7 +54,8 @@ class LocationControllerTest {
                 "hashed",
                 Set.of(),
                 true,
-                "John Doe"
+                "John Doe",
+            UnitSystem.METRIC
         );
     }
 

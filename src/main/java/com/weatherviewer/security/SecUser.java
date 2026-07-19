@@ -1,6 +1,7 @@
 package com.weatherviewer.security;
 
 import com.weatherviewer.model.User;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class SecUser implements UserDetails {
     private final Set<SimpleGrantedAuthority> authorities;
     private final Boolean isActive;
     private final String fullName;
+    private final UnitSystem units;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -81,7 +83,8 @@ public class SecUser implements UserDetails {
                 user.getPassword(),
                 user.getRole().getAuthority(),
                 user.getStatus() == UserStatus.ACTIVE,
-                user.getFullName()
+                user.getFullName(),
+                user.getUnits()
         );
     }
 

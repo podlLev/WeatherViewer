@@ -55,7 +55,7 @@ class RateLimitingFilterTest {
     }
 
     private void authenticateAs(UUID userId) {
-        SecUser secUser = new SecUser(userId, "john@example.com", "hashed", java.util.Set.of(), true, "John Doe");
+        SecUser secUser = new SecUser(userId, "john@example.com", "hashed", java.util.Set.of(), true, "John Doe", com.weatherviewer.model.enums.UnitSystem.METRIC);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(secUser, null, secUser.getAuthorities()));
     }
