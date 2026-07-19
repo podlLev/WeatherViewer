@@ -9,6 +9,7 @@ import com.weatherviewer.exception.notfound.UserNotFoundException;
 import com.weatherviewer.mapper.UserMapper;
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.repository.UserRepository;
 import com.weatherviewer.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -99,6 +100,10 @@ public class UserServiceImpl implements UserService {
 
         if (updateUserDto.getPassword() != null && !updateUserDto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(updateUserDto.getPassword()));
+        }
+
+        if (updateUserDto.getUnits() != null && !updateUserDto.getUnits().isBlank()) {
+            user.setUnits(UnitSystem.getInstance(updateUserDto.getUnits()));
         }
 
         userRepository.save(user);
