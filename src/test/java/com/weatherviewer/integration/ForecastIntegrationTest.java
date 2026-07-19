@@ -2,6 +2,7 @@ package com.weatherviewer.integration;
 
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.repository.UserRepository;
@@ -56,7 +57,8 @@ class ForecastIntegrationTest {
                 savedUser.getPassword(),
                 Set.of(),
                 true,
-                savedUser.getFullName()
+                savedUser.getFullName(),
+            UnitSystem.METRIC
         );
     }
 

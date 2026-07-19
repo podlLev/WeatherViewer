@@ -97,8 +97,8 @@
                                          th:src="@{'/images/' + ${item.value.weatherCondition} + '-' + ${item.value.timeOfDay} + '.svg'}">
                                 </div>
                                 <div class="col-md-6 text-end align-self-center">
-                                    <h1 class="text-primary" th:text="${item.value.temperature} + '°C'"></h1>
-                                    <p th:text="'Feels like ' + ${item.value.temperatureFeelsLike} + '°C'"></p>
+                                    <h1 class="text-primary" th:text="${item.value.temperature} + ${temperatureSymbol}"></h1>
+                                    <p th:text="'Feels like ' + ${item.value.temperatureFeelsLike} + ${temperatureSymbol}"></p>
                                 </div>
                             </div>
                         </div>
@@ -112,7 +112,7 @@
                                     <ul class="list-group">
                                         <li class="list-group-item">
                                             <i class="fas fa-temperature-low" style="margin-right: 4px;width: 20px;"></i>
-                                            <span th:text="'Min ' + ${item.value.temperatureMinimum} + '°C'"></span>
+                                            <span th:text="'Min ' + ${item.value.temperatureMinimum} + ${temperatureSymbol}"></span>
                                         </li>
                                         <li class="list-group-item">
                                             <i class="fas fa-cloud" style="margin-right: 4px;width: 20px;font-size: 14px;"></i>
@@ -120,7 +120,7 @@
                                         </li>
                                         <li class="list-group-item">
                                             <i class="fas fa-wind" style="margin-right: 5px;width: 20px;"></i>
-                                            <span th:text="|${item.value.windDirection}&deg; ${item.value.windSpeed} km/h|"></span>
+                                            <span th:text="|${item.value.windDirection}&deg; ${item.value.windSpeed} ${windSpeedUnit}|"></span>
                                         </li>
                                         <li class="list-group-item">
                                             <svg class="bi bi-sunrise" fill="currentColor" height="1em"
@@ -147,7 +147,7 @@
                                     <ul class="list-group">
                                         <li class="list-group-item">
                                             <i class="fas fa-temperature-high" style="margin-right: 0;width: 20px;"></i>
-                                            <span th:text="'Max ' + ${item.value.temperatureMaximum} + '°C'"></span>
+                                            <span th:text="'Max ' + ${item.value.temperatureMaximum} + ${temperatureSymbol}"></span>
                                         </li>
                                         <li class="list-group-item">
                                             <i class="icon ion-waterdrop" style="margin-right: 10px;width: 20px;font-size: 16px;"></i>
