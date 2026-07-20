@@ -22,6 +22,10 @@ public interface UserMapper {
      */
     @Mapping(target = "status", expression = "java(com.weatherviewer.model.enums.UserStatus.ACTIVE)")
     @Mapping(target = "role", expression = "java(com.weatherviewer.model.enums.Role.USER)")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "units", ignore = true)
+    @Mapping(target = "locations", ignore = true)
     User fromRecord(CreateUserDto createUserDto);
 
     /**
