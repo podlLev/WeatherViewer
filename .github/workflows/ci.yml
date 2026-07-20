@@ -61,3 +61,52 @@ jobs:
         with:
           name: app-jar
           path: target/*.jar
+
+  # ---------------------------------------------------------------------
+  # 2. Build + push a versioned image to Docker Hub
+  #    - runs ONLY on: pushes to main
+  #    - every push to main -> :<pom-version>  :latest
+  #    - pushes to dev, and all PRs -> this job does not run at all
+  #      (dev/PRs are still covered by the `test` job above)
+  # ---------------------------------------------------------------------
+  docker:
+    name: Build & Push Docker Image
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read version from pom.xml
+        id: pom
+        run: |
+          VERSION=$(./mvnw -q -B help:evaluate -Dexpression=project.version -DforceStdout)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/weatherviewer
+          tags: |
+            type=raw,value=${{ steps.pom.outputs.version }}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
