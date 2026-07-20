@@ -28,6 +28,9 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Make mvnw executable
+        run: chmod +x ./mvnw
+
       - name: Run tests
         # Tests run against the in-memory H2 DB and spring.cache.type=simple,
         # so no Postgres/Redis service containers are needed here.
