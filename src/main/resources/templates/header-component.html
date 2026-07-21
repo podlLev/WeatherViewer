@@ -10,12 +10,17 @@
             <div class="col d-flex">
                 <div th:replace="~{search-component}"></div>
             </div>
+            <div class="col-auto d-flex align-items-center">
+                <button type="button" id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Switch to dark mode" title="Switch to dark mode">
+                    <i class="bi bi-moon-stars-fill"></i>
+                </button>
+            </div>
             <div class="col d-flex justify-content-end" th:classappend="${login}? 'd-none'">
                 <a class="btn btn-outline-primary px-3" href="sign-in" role="button" th:href="@{/sign-in}">Sign in</a>
                 <a class="btn btn-primary px-3 ms-2" href="sign-up" role="button" th:href="@{/sign-up}">Sign up</a>
             </div>
             <div class="col d-flex justify-content-end align-items-center" th:classappend="!(${login})? 'd-none' : ''">
-                <a th:href="@{/profile}" class="text-dark text-decoration-none fw-bold d-flex align-items-center">
+                <a th:href="@{/profile}" class="text-body text-decoration-none fw-bold d-flex align-items-center">
                     <i class="bi bi-person-circle fs-3 me-2"></i>
                     <span th:text="${login}">Username</span>
                 </a>
