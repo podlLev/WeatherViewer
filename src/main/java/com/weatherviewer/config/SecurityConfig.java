@@ -55,6 +55,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/sign-in", "/sign-up", "/sign-in-failure",
+                                "/verify-email", "/resend-verification",
+                                "/forgot-password", "/reset-password",
                                 "/css/**", "/images/**", "/js/**",
                                 "/actuator/health", "/actuator/health/**"
                         ).permitAll()
@@ -89,18 +91,16 @@ public class SecurityConfig {
                         .expiredUrl("/sign-in?expired")
                 )
                 .headers(headers -> headers
-                        .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "default-src 'self'; "
-                                        + "script-src 'self' https://cdn.jsdelivr.net; "
-                                        + "style-src 'self' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com 'unsafe-inline'; "
-                                        + "font-src 'self' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com data:; "
-                                        + "img-src 'self' data:; "
-                                        + "connect-src 'self'; "
-                                        + "object-src 'none'; "
-                                        + "base-uri 'self'; "
-                                        + "form-action 'self'; "
-                                        + "frame-ancestors 'none'"
-                        ))
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives(
+                                        "default-src 'self'; " +
+                                                "script-src 'self' https://cdn.jsdelivr.net; " +
+                                                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+                                                "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; " +
+                                                "connect-src 'self' https://cdn.jsdelivr.net; " +
+                                                "img-src 'self' data: https:;"
+                                )
+                        )
                 )
                 .addFilterAfter(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
 

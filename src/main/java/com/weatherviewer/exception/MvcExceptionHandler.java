@@ -25,7 +25,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
         SearchController.class,
         ForecastController.class,
         ProfileController.class,
-        AuthController.class
+        AuthController.class,
+        PasswordResetController.class
 })
 @Slf4j
 public class MvcExceptionHandler {

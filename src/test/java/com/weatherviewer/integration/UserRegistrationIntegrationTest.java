@@ -113,7 +113,7 @@ class UserRegistrationIntegrationTest {
 
         User savedUser = userRepository.findByEmail("defaults@example.com").orElseThrow();
         assertThat(savedUser.getRole().name()).isEqualTo("USER");
-        assertThat(savedUser.getStatus().name()).isEqualTo("ACTIVE");
+        assertThat(savedUser.getStatus().name()).isEqualTo("PENDING");
     }
 
 }
