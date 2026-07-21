@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog logicalFilePath="liquibase/changelog.xml" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="create-token-type" author="Pidlisnyi Lev">
+        <sql>
+            CREATE TYPE token_type AS ENUM ('EMAIL_VERIFICATION','PASSWORD_RESET');
+        </sql>
+    </changeSet>
+
+    <changeSet id="ct-verification-tokens" author="Pidlisnyi Lev">
+        <createTable tableName="verification_tokens">
+            <column name="id" type="UUID">
+                <constraints nullable="false" primaryKey="true" unique="true"/>
+            </column>
+            <column name="token" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="user_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="token_type">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="used" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="idx-verification-tokens-user-type" author="Pidlisnyi Lev">
+        <createIndex tableName="verification_tokens" indexName="idx_verification_tokens_user_type">
+            <column name="user_id"/>
+            <column name="type"/>
+            <column name="used"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
