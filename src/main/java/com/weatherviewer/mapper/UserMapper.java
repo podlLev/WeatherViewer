@@ -16,11 +16,13 @@ public interface UserMapper {
 
     /**
      * Builds a new {@link User} from a registration payload. New accounts
-     * are always created with {@code status = ACTIVE} and {@code role = USER};
-     * the password field is copied as-is and must already be hashed by the
-     * caller before persisting.
+     * are always created with {@code status = PENDING} (until the owner
+     * confirms their email address via the verification link — see
+     * {@link com.weatherviewer.service.VerificationService}) and
+     * {@code role = USER}; the password field is copied as-is and must
+     * already be hashed by the caller before persisting.
      */
-    @Mapping(target = "status", expression = "java(com.weatherviewer.model.enums.UserStatus.ACTIVE)")
+    @Mapping(target = "status", expression = "java(com.weatherviewer.model.enums.UserStatus.PENDING)")
     @Mapping(target = "role", expression = "java(com.weatherviewer.model.enums.Role.USER)")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
