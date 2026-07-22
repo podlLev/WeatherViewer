@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog logicalFilePath="liquibase/changelog.xml" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <changeSet id="ct-persistent-logins" author="Pidlisnyi Lev">
+        <createTable tableName="persistent_logins">
+            <column name="username" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="series" type="VARCHAR(64)">
+                <constraints nullable="false" primaryKey="true" unique="true"/>
+            </column>
+            <column name="token" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_used" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="idx-persistent-logins-username" author="Pidlisnyi Lev">
+        <createIndex tableName="persistent_logins" indexName="idx_persistent_logins_username">
+            <column name="username"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
