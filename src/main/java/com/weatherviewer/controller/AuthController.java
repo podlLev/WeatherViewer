@@ -49,15 +49,22 @@ public class AuthController {
     /** Landing target Spring Security redirects to after a failed login attempt; re-renders sign-in with an error. */
     @GetMapping("/sign-in-failure")
     public String signInFailure(@RequestParam(required = false) Boolean unverified,
+                                @RequestParam(required = false) Boolean locked,
                                 @RequestParam(required = false) String email,
                                 RedirectAttributes redirectAttributes) {
-        log.info("Sign-in failed, unverified={}", unverified);
+        log.info("Sign-in failed, unverified={}, locked={}", unverified, locked);
 
+        String emailParam = email != null && !email.isBlank() ? "&email=" + email : "";
         if (Boolean.TRUE.equals(unverified)) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Please verify your email before signing in.");
-            return "redirect:/sign-in?unverified=true"
-                    + (email != null && !email.isBlank() ? "&email=" + email : "");
+            return "redirect:/sign-in?unverified=true" + emailParam;
+        }
+
+        if (Boolean.TRUE.equals(locked)) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Too many failed sign-in attempts. Your account is temporarily locked — please try again in a few minutes.");
+            return "redirect:/sign-in?locked=true" + emailParam;
         }
 
         redirectAttributes.addFlashAttribute("errorMessage", "Invalid email or password. Please try again.");

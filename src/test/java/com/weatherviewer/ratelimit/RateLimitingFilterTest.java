@@ -1,5 +1,6 @@
 package com.weatherviewer.ratelimit;
 
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.security.SecUser;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
@@ -55,7 +56,15 @@ class RateLimitingFilterTest {
     }
 
     private void authenticateAs(UUID userId) {
-        SecUser secUser = new SecUser(userId, "john@example.com", "hashed", java.util.Set.of(), true, "John Doe", com.weatherviewer.model.enums.UnitSystem.METRIC);
+        SecUser secUser = new SecUser(
+                userId,
+                "john@example.com",
+                "hashed",
+                java.util.Set.of(),
+                true,
+                "John Doe",
+                UnitSystem.METRIC,
+                null);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(secUser, null, secUser.getAuthorities()));
     }

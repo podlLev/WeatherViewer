@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
@@ -96,7 +97,7 @@ class WeatherApiIntegrationTest {
 
     @Test
     void getWeatherByCity_apiReturnsError_throwsExternalHttpCallException() {
-        mockServer.expect(method(GET))
+        mockServer.expect(ExpectedCount.times(3), method(GET))
                 .andRespond(MockRestResponseCreators.withServerError());
 
         assertThatThrownBy(() -> weatherApiService.getWeatherByCity("Kyiv"))
@@ -107,7 +108,7 @@ class WeatherApiIntegrationTest {
 
     @Test
     void getWeatherByCity_malformedJson_throwsExternalHttpCallException() {
-        mockServer.expect(method(GET))
+        mockServer.expect(ExpectedCount.times(3), method(GET))
                 .andRespond(withSuccess("not-valid-json{{{", MediaType.APPLICATION_JSON));
 
         assertThatThrownBy(() -> weatherApiService.getWeatherByCity("Kyiv"))

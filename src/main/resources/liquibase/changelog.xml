@@ -9,5 +9,6 @@
     <include file="/liquibase/update/04-add-user-units.xml"/>
     <include file="/liquibase/update/05-add-verification-tokens.xml"/>
     <include file="/liquibase/update/06-add-persistent-logins.xml"/>
+    <include file="/liquibase/update/07-add-account-lockout.xml"/>
 
 </databaseChangeLog>

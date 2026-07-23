@@ -5,6 +5,7 @@ import com.weatherviewer.model.enums.Role;
 import com.weatherviewer.model.enums.UserStatus;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,6 +79,33 @@ class SecUserTest {
         assertThat(secUser.getAuthorities())
                 .extracting("authority")
                 .doesNotContain("users:write");
+    }
+
+    @Test
+    void isAccountNonLocked_lockedUntilInFuture_returnsFalse() {
+        User user = user(UserStatus.ACTIVE, Role.USER);
+        user.setLockedUntil(LocalDateTime.now().plusMinutes(15));
+        SecUser secUser = SecUser.fromUser(user);
+
+        assertThat(secUser.isAccountNonLocked()).isFalse();
+    }
+
+    @Test
+    void isAccountNonLocked_lockedUntilInPast_returnsTrue() {
+        User user = user(UserStatus.ACTIVE, Role.USER);
+        user.setLockedUntil(LocalDateTime.now().minusMinutes(5));
+        SecUser secUser = SecUser.fromUser(user);
+
+        assertThat(secUser.isAccountNonLocked()).isTrue();
+    }
+
+    @Test
+    void isAccountNonLocked_inactiveStatusWithNullLockedUntil_returnsFalse() {
+        User user = user(UserStatus.PENDING, Role.USER);
+        user.setLockedUntil(null);
+        SecUser secUser = SecUser.fromUser(user);
+
+        assertThat(secUser.isAccountNonLocked()).isFalse();
     }
 
 }

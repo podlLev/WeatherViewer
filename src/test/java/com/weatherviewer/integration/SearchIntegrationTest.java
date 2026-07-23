@@ -70,7 +70,8 @@ class SearchIntegrationTest {
                 Set.of(),
                 true,
                 savedUser.getFullName(),
-            UnitSystem.METRIC
+                UnitSystem.METRIC,
+                null
         );
     }
 
@@ -181,7 +182,7 @@ class SearchIntegrationTest {
         SecUser otherSecUser = new SecUser(
                 otherUser.getId(), otherUser.getEmail(), otherUser.getPassword(),
                 Set.of(), true, otherUser.getFullName(),
-            UnitSystem.METRIC
+                UnitSystem.METRIC, null
         );
 
         mockMvc.perform(post("/search/add")
