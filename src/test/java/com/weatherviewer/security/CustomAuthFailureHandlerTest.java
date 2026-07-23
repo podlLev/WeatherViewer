@@ -9,6 +9,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 
 import java.io.IOException;
@@ -71,7 +72,28 @@ class CustomAuthFailureHandlerTest {
     }
 
     @Test
-    void onAuthenticationFailure_disabledException_withBlankEmail_redirectsWithoutEmailParam()
+    void onAuthenticationFailure_lockedException_redirectsWithLockedAndEmailParam()
+            throws IOException, ServletException {
+        request.setParameter("email", "john@example.com");
+        AuthenticationException exception = new LockedException("Account is locked");
+
+        failureHandler.onAuthenticationFailure(request, response, exception);
+
+        assertEquals("/sign-in-failure?locked=true&email=john@example.com", response.getRedirectedUrl());
+    }
+
+    @Test
+    void onAuthenticationFailure_lockedException_withoutEmail_redirectsWithLockedParamOnly()
+            throws IOException, ServletException {
+        AuthenticationException exception = new LockedException("Account is locked");
+
+        failureHandler.onAuthenticationFailure(request, response, exception);
+
+        assertEquals("/sign-in-failure?locked=true", response.getRedirectedUrl());
+    }
+
+    @Test
+    void onAuthenticationFailure_disabledException_withBlankEmail_redirectsWithUnverifiedParamOnly()
             throws IOException, ServletException {
         request.setParameter("email", "   ");
         AuthenticationException exception = new DisabledException("Account is disabled");

@@ -57,7 +57,8 @@ class ProfileIntegrationTest {
                 Set.of(),
                 true,
                 savedUser.getFullName(),
-            UnitSystem.METRIC
+                UnitSystem.METRIC,
+                null
         );
     }
 

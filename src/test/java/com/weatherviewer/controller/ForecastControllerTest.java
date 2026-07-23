@@ -67,7 +67,8 @@ class ForecastControllerTest {
                 Set.of(),
                 true,
                 "John Doe",
-            UnitSystem.METRIC
+                UnitSystem.METRIC,
+                null
         );
     }
 

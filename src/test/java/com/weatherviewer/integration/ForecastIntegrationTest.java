@@ -58,7 +58,8 @@ class ForecastIntegrationTest {
                 Set.of(),
                 true,
                 savedUser.getFullName(),
-            UnitSystem.METRIC
+                UnitSystem.METRIC,
+                null
         );
     }
 
