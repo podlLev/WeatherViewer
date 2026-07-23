@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -56,6 +57,23 @@ public class User extends BaseEntity {
     @Column(columnDefinition = "unit_system")
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private UnitSystem units = UnitSystem.METRIC;
+
+    /**
+     * Consecutive failed sign-in attempts since the last successful login
+     * or the last time the account was unlocked. Reset to zero on every
+     * successful authentication. Tracked by
+     * {@link com.weatherviewer.security.AccountLockoutListener}.
+     */
+    @Column(nullable = false)
+    private int failedLoginAttempts = 0;
+
+    /**
+     * If set and still in the future, the account is temporarily locked out
+     * of authentication regardless of {@link #status} — see
+     * {@link com.weatherviewer.security.SecUser#isAccountNonLocked()}.
+     * {@code null} means the account isn't locked.
+     */
+    private LocalDateTime lockedUntil;
 
     /** Locations saved by this user; removed automatically if the user is deleted. */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
