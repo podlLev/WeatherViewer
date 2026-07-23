@@ -301,4 +301,25 @@ class AuthControllerTest {
                 .andExpect(flash().attribute("errorMessage", "Please verify your email before signing in."));
     }
 
+    @Test
+    @WithMockUser
+    void signInFailure_lockedTrue_withEmail_redirectsWithLockedAndEmailQueryParam() throws Exception {
+        mockMvc.perform(get("/sign-in-failure")
+                        .param("locked", "true")
+                        .param("email", "john@example.com"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/sign-in?locked=true&email=john@example.com"))
+                .andExpect(flash().attributeExists("errorMessage"));
+    }
+
+    @Test
+    @WithMockUser
+    void signInFailure_lockedTrue_withoutEmail_redirectsWithLockedQueryParamOnly() throws Exception {
+        mockMvc.perform(get("/sign-in-failure")
+                        .param("locked", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/sign-in?locked=true"))
+                .andExpect(flash().attributeExists("errorMessage"));
+    }
+
 }
