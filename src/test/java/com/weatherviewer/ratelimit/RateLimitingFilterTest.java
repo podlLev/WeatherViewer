@@ -3,6 +3,7 @@ package com.weatherviewer.ratelimit;
 import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.security.SecUser;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -543,6 +546,68 @@ class RateLimitingFilterTest {
                 eq(expectedKey),
                 eq(properties.getDefaultLimit()),
                 eq(properties.getDefaultWindowSeconds()));
+    }
+
+    @Test
+    void shouldNotFilter_nullPath_returnsFalse() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURI()).thenReturn(null);
+
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 10, 0));
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, filterChain);
+
+        verify(rateLimiter).tryConsume(anyString(), anyInt(), anyInt());
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void shouldNotFilter_noMatches_coversFalseBranch() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/weather");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+
+        when(rateLimiter.tryConsume(anyString(), anyInt(), anyInt()))
+                .thenReturn(new RedisFixedWindowRateLimiter.RateLimitResult(true, 10, 0));
+
+        filter.doFilter(request, response, filterChain);
+
+        verify(rateLimiter).tryConsume(anyString(), anyInt(), anyInt());
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void shouldNotFilter_matchingExtensionWithNonStaticPrefix_coversSecondBranch() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/logo.png");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, filterChain);
+
+        verifyNoInteractions(rateLimiter);
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void shouldNotFilter_prefixMatch_returnsTrue() {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/images/icon");
+        assertTrue(filter.shouldNotFilter(request));
+    }
+
+    @Test
+    void shouldNotFilter_extensionMatchOnly_returnsTrue() {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/icon.svg");
+        assertTrue(filter.shouldNotFilter(request));
+    }
+
+    @Test
+    void shouldNotFilter_noMatch_returnsFalse() {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/weather");
+        assertFalse(filter.shouldNotFilter(request));
     }
 
 }

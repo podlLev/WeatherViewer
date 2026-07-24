@@ -21,6 +21,7 @@ import org.springframework.web.servlet.support.SessionFlashMapManager;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Servlet filter that enforces per-client request rate limits, backed by
@@ -43,6 +44,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final String RATE_LIMIT_REMAINING_HEADER = "X-RateLimit-Remaining";
     private static final String API_PATH_PREFIX = "/api";
 
+    private static final Set<String> STATIC_PREFIXES = Set.of("/css/", "/js/", "/images/", "/static/");
+    private static final Set<String> STATIC_EXTENSIONS = Set.of(".svg", ".png", ".ico", ".css", ".js");
+
     private final RedisFixedWindowRateLimiter rateLimiter;
     private final RateLimitProperties properties;
     private List<IpAddressMatcher> trustedProxyMatchers;
@@ -59,6 +63,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         this.trustedProxyMatchers = properties.getTrustedProxies().stream()
                 .map(IpAddressMatcher::new)
                 .toList();
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (path == null) {
+            return false;
+        }
+
+        boolean isStaticPrefix = STATIC_PREFIXES.stream().anyMatch(path::startsWith);
+        boolean isStaticExt = STATIC_EXTENSIONS.stream().anyMatch(path::endsWith);
+
+        return isStaticPrefix || isStaticExt;
     }
 
     @Override

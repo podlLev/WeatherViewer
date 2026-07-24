@@ -1,6 +1,8 @@
 package com.weatherviewer.repository;
 
 import com.weatherviewer.model.Location;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +22,20 @@ public interface LocationRepository extends JpaRepository<Location, UUID> {
 
     /** Returns all locations saved by the given user, in no particular order. */
     List<Location> findByUserId(UUID userId);
+
+    /**
+     * Returns one page of a user's locations, sorted per the given
+     * {@link org.springframework.data.domain.Pageable}'s
+     * {@link org.springframework.data.domain.Sort}. Backs the paginated
+     * home dashboard.
+     */
+    Page<Location> findByUserId(UUID userId, Pageable pageable);
+
+    /** Returns one page of a user's favorited locations, sorted per the given Pageable's Sort. */
+    Page<Location> findByUserIdAndFavoriteTrue(UUID userId, Pageable pageable);
+
+    /** Counts how many locations the given user has saved, used to enforce the per-user cap. */
+    long countByUserId(UUID userId);
 
     /** Returns a user's locations, most recently added first. */
     List<Location> findByUserIdOrderByCreatedAtDesc(UUID userId);

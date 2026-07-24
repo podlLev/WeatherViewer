@@ -9,7 +9,9 @@ import com.weatherviewer.repository.LocationRepository;
 import com.weatherviewer.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +68,31 @@ public class LocationServiceImpl implements LocationService {
     public List<LocationDto> getByUserId(UUID userId) {
         List<Location> locations = locationRepository.findByUserId(userId);
         return locationMapper.toDtoList(locations);
+    }
+
+    @Override
+    public long countByUserId(UUID userId) {
+        return locationRepository.countByUserId(userId);
+    }
+
+    @Override
+    public Page<LocationDto> getByUserIdSorted(UUID userId, String sort, Pageable pageable) {
+        String normalizedSort = sort == null ? "date" : sort.toLowerCase();
+
+        if ("favoritesonly".equals(normalizedSort)) {
+            Pageable request = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by(Sort.Direction.DESC, "createdAt"));
+            return locationRepository.findByUserIdAndFavoriteTrue(userId, request).map(locationMapper::toDto);
+        }
+
+        Sort sortOrder = switch (normalizedSort) {
+            case "nameasc" -> Sort.by(Sort.Direction.ASC, "name");
+            case "namedesc" -> Sort.by(Sort.Direction.DESC, "name");
+            case "favoritefirst" -> Sort.by(Sort.Order.desc("favorite"), Sort.Order.desc("createdAt"));
+            default -> Sort.by(Sort.Direction.DESC, "createdAt");
+        };
+        Pageable request = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sortOrder);
+        return locationRepository.findByUserId(userId, request).map(locationMapper::toDto);
     }
 
     @Override

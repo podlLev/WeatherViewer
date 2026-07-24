@@ -48,6 +48,27 @@ public interface LocationService {
     /** Returns all locations saved by the given user, unsorted. */
     List<LocationDto> getByUserId(UUID userId);
 
+    /**
+     * Counts how many locations the given user currently has saved.
+     * Backs {@link com.weatherviewer.validation.annotation.LocationLimit},
+     * which rejects new locations once a user hits the configured cap
+     * ({@code location.max-per-user}) — without this, a single user could
+     * save an unbounded number of locations and force the dashboard to
+     * fan out an unbounded number of weather calls on every page load.
+     */
+    long countByUserId(UUID userId);
+
+    /**
+     * Returns one page of a user's saved locations in the given dashboard
+     * sort order ({@code date}, {@code nameAsc}, {@code nameDesc},
+     * {@code favoriteFirst}, or {@code favoritesOnly} — unrecognized/blank
+     * values fall back to {@code date}). Backs the paginated home
+     * dashboard, so a user with many saved locations only loads (and
+     * fetches weather for) one page's worth per request instead of
+     * everything at once.
+     */
+    Page<LocationDto> getByUserIdSorted(UUID userId, String sort, Pageable pageable);
+
     /** Looks up a user's saved location by its exact coordinates. */
     LocationDto getByCoordinatesAndUserId(Double latitude, Double longitude, UUID userId);
 

@@ -1,6 +1,7 @@
 package com.weatherviewer.dto;
 
 import com.weatherviewer.validation.annotation.Latitude;
+import com.weatherviewer.validation.annotation.LocationLimit;
 import com.weatherviewer.validation.annotation.Longitude;
 import com.weatherviewer.validation.annotation.UniqueLocation;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @ToString
 @Accessors(chain = true)
 @UniqueLocation
+@LocationLimit
 @Schema(description = "Payload for creating a saved location")
 public class AddLocationDto {
 
