@@ -1,5 +1,7 @@
 package com.weatherviewer.service.impl;
 
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +12,8 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -29,7 +33,12 @@ class MailServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new MailServiceImpl(mailSender, FROM_ADDRESS);
+        RetryConfig fastRetryConfig = RetryConfig.custom()
+                .maxAttempts(2)
+                .waitDuration(Duration.ZERO)
+                .build();
+        RetryRegistry retryRegistry = RetryRegistry.of(fastRetryConfig);
+        service = new MailServiceImpl(mailSender, retryRegistry, FROM_ADDRESS);
     }
 
     @Test
