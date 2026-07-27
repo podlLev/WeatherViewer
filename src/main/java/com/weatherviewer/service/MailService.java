@@ -2,8 +2,16 @@ package com.weatherviewer.service;
 
 /**
  * Outbound transactional email. Implementations must never let a mail
- * provider outage break the calling request (sign-up, password reset) —
- * failures are logged and swallowed rather than propagated.
+ * provider outage break the calling request — failures are retried a few
+ * times, then logged and swallowed rather than propagated.
+ * <p>
+ * In practice these methods are only ever invoked by
+ * {@link com.weatherviewer.service.impl.MailEventListener}, asynchronously
+ * and after the transaction that created the underlying token has
+ * committed (see {@link com.weatherviewer.event.VerificationEmailRequestedEvent}
+ * / {@link com.weatherviewer.event.PasswordResetEmailRequestedEvent}), so a
+ * slow or unreachable mail server never adds latency to — or breaks — the
+ * sign-up, verification, or password-reset request itself.
  */
 public interface MailService {
 

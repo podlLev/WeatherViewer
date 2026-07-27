@@ -1,5 +1,7 @@
 package com.weatherviewer.service.impl;
 
+import com.weatherviewer.event.PasswordResetEmailRequestedEvent;
+import com.weatherviewer.event.VerificationEmailRequestedEvent;
 import com.weatherviewer.exception.InvalidTokenException;
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.VerificationToken;
@@ -7,10 +9,10 @@ import com.weatherviewer.model.enums.TokenType;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.repository.UserRepository;
 import com.weatherviewer.repository.VerificationTokenRepository;
-import com.weatherviewer.service.MailService;
 import com.weatherviewer.service.VerificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,13 @@ import java.util.Base64;
  * emailed link. Issuing a new token for a given user/purpose first
  * invalidates any earlier unused ones of that same type, so only the most
  * recently emailed link ever works.
+ * <p>
+ * The actual email is not sent from here. Instead, an
+ * {@code *EmailRequestedEvent} is published, which
+ * {@link MailEventListener} picks up asynchronously and only after this
+ * method's transaction has committed — so a rollback (or a slow/unreachable
+ * mail server) can never desync the token that was persisted from the link
+ * that was emailed.
  */
 @Service
 @Slf4j
@@ -37,7 +46,7 @@ public class VerificationServiceImpl implements VerificationService {
 
     private final UserRepository userRepository;
     private final VerificationTokenRepository tokenRepository;
-    private final MailService mailService;
+    private final ApplicationEventPublisher eventPublisher;
     private final PasswordEncoder passwordEncoder;
     private final String baseUrl;
     private final long verificationTtlHours;
@@ -45,14 +54,14 @@ public class VerificationServiceImpl implements VerificationService {
 
     public VerificationServiceImpl(UserRepository userRepository,
                                    VerificationTokenRepository tokenRepository,
-                                   MailService mailService,
+                                   ApplicationEventPublisher eventPublisher,
                                    PasswordEncoder passwordEncoder,
                                    @Value("${app.base-url:http://localhost:8080}") String baseUrl,
                                    @Value("${app.verification.token-ttl-hours:24}") long verificationTtlHours,
                                    @Value("${app.password-reset.token-ttl-hours:1}") long passwordResetTtlHours) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
-        this.mailService = mailService;
+        this.eventPublisher = eventPublisher;
         this.passwordEncoder = passwordEncoder;
         this.baseUrl = baseUrl;
         this.verificationTtlHours = verificationTtlHours;
@@ -71,7 +80,7 @@ public class VerificationServiceImpl implements VerificationService {
                 .queryParam("token", rawToken)
                 .toUriString();
 
-        mailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), link);
+        eventPublisher.publishEvent(new VerificationEmailRequestedEvent(user.getEmail(), user.getFirstName(), link));
     }
 
     @Override
@@ -98,7 +107,7 @@ public class VerificationServiceImpl implements VerificationService {
                     .queryParam("token", rawToken)
                     .toUriString();
 
-            mailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), link);
+            eventPublisher.publishEvent(new PasswordResetEmailRequestedEvent(user.getEmail(), user.getFirstName(), link));
         }, () -> log.info("Password reset requested for unregistered email={}", email));
     }
 

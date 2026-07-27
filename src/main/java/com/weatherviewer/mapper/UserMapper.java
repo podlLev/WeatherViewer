@@ -28,6 +28,8 @@ public interface UserMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "units", ignore = true)
     @Mapping(target = "locations", ignore = true)
+    @Mapping(target = "lockedUntil", ignore = true)
+    @Mapping(target = "failedLoginAttempts", ignore = true)
     User fromRecord(CreateUserDto createUserDto);
 
     /**

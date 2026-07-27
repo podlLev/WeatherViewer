@@ -1,6 +1,8 @@
 package com.weatherviewer.service.impl;
 
 import com.weatherviewer.service.MailService;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
@@ -12,21 +14,34 @@ import org.springframework.stereotype.Service;
  * {@link MailService} implementation backed by {@link JavaMailSender}.
  * <p>
  * Emails are plain text on purpose (no external images/styles to fetch,
- * nothing for a mail client to block). A misconfigured or unreachable SMTP
- * server never bubbles up as a 500 to the user — sign-up and password
- * reset both still succeed, they just log a warning that no email went
- * out, so the account/token itself is never lost because of a mail outage.
+ * nothing for a mail client to block). Transient SMTP failures are retried
+ * via the {@code mail} Resilience4j retry instance (same pattern as the
+ * {@code weatherApi} retry around the OpenWeatherMap client) before giving
+ * up; a misconfigured or unreachable SMTP server never bubbles up past this
+ * class. Retry is applied programmatically here, rather than via
+ * {@code @Retry}, because the send happens on a private helper called from
+ * within this same bean — an annotation-based retry would be silently
+ * skipped by Spring AOP's proxy on that kind of self-invocation.
+ * <p>
+ * Sending itself is now invoked off the request thread: {@link MailService}
+ * is only ever called by {@link MailEventListener}, asynchronously, after
+ * the transaction that created the underlying token has committed. That
+ * keeps a mail outage from adding latency to (or breaking) sign-up,
+ * verification, or password-reset requests.
  */
 @Service
 @Slf4j
 public class MailServiceImpl implements MailService {
 
     private final JavaMailSender mailSender;
+    private final Retry retry;
     private final String fromAddress;
 
     public MailServiceImpl(JavaMailSender mailSender,
+                           RetryRegistry retryRegistry,
                            @Value("${app.mail.from:no-reply@weatherviewer.local}") String fromAddress) {
         this.mailSender = mailSender;
+        this.retry = retryRegistry.retry("mail");
         this.fromAddress = fromAddress;
     }
 
@@ -55,17 +70,26 @@ public class MailServiceImpl implements MailService {
         send(to, subject, body);
     }
 
+    /**
+     * Sends the message, retrying transient SMTP failures via the {@code mail}
+     * Resilience4j retry instance. If every attempt fails, the failure is
+     * logged and swallowed here rather than propagated — callers (in
+     * practice, {@link MailEventListener} running on its own thread) never
+     * need to handle a mail-specific exception.
+     */
     private void send(String to, String subject, String body) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
+            retry.executeRunnable(() -> {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom(fromAddress);
+                message.setTo(to);
+                message.setSubject(subject);
+                message.setText(body);
+                mailSender.send(message);
+            });
             log.info("Sent email '{}' to {}", subject, to);
         } catch (MailException e) {
-            log.warn("Failed to send email '{}' to {}: {}", subject, to, e.getMessage());
+            log.warn("Failed to send email '{}' to {} after retries: {}", subject, to, e.getMessage());
         }
     }
 

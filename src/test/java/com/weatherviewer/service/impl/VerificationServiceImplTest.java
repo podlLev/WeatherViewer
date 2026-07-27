@@ -1,5 +1,7 @@
 package com.weatherviewer.service.impl;
 
+import com.weatherviewer.event.PasswordResetEmailRequestedEvent;
+import com.weatherviewer.event.VerificationEmailRequestedEvent;
 import com.weatherviewer.exception.InvalidTokenException;
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.VerificationToken;
@@ -8,13 +10,13 @@ import com.weatherviewer.model.enums.TokenType;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.repository.UserRepository;
 import com.weatherviewer.repository.VerificationTokenRepository;
-import com.weatherviewer.service.MailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -23,7 +25,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +41,7 @@ class VerificationServiceImplTest {
     private VerificationTokenRepository tokenRepository;
 
     @Mock
-    private MailService mailService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -49,7 +50,7 @@ class VerificationServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new VerificationServiceImpl(userRepository, tokenRepository, mailService, passwordEncoder,
+        service = new VerificationServiceImpl(userRepository, tokenRepository, eventPublisher, passwordEncoder,
                 BASE_URL, VERIFICATION_TTL_HOURS, PASSWORD_RESET_TTL_HOURS);
     }
 
@@ -103,12 +104,15 @@ class VerificationServiceImplTest {
         verify(tokenRepository).save(tokenCaptor.capture());
         String rawToken = tokenCaptor.getValue().getToken();
 
-        ArgumentCaptor<String> linkCaptor = ArgumentCaptor.forClass(String.class);
-        verify(mailService).sendVerificationEmail(eq("john@example.com"), eq("John"), linkCaptor.capture());
+        ArgumentCaptor<VerificationEmailRequestedEvent> eventCaptor =
+                ArgumentCaptor.forClass(VerificationEmailRequestedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-        String link = linkCaptor.getValue();
-        assertThat(link).startsWith(BASE_URL + "/verify-email?token=");
-        assertThat(link).contains(rawToken);
+        VerificationEmailRequestedEvent event = eventCaptor.getValue();
+        assertThat(event.email()).isEqualTo("john@example.com");
+        assertThat(event.firstName()).isEqualTo("John");
+        assertThat(event.verificationLink()).startsWith(BASE_URL + "/verify-email?token=");
+        assertThat(event.verificationLink()).contains(rawToken);
     }
 
     @Test
@@ -220,9 +224,14 @@ class VerificationServiceImplTest {
         assertThat(tokenCaptor.getValue().getExpiresAt())
                 .isBefore(LocalDateTime.now().plusHours(PASSWORD_RESET_TTL_HOURS + 1));
 
-        ArgumentCaptor<String> linkCaptor = ArgumentCaptor.forClass(String.class);
-        verify(mailService).sendPasswordResetEmail(eq("john@example.com"), eq("John"), linkCaptor.capture());
-        assertThat(linkCaptor.getValue()).startsWith(BASE_URL + "/reset-password?token=");
+        ArgumentCaptor<PasswordResetEmailRequestedEvent> eventCaptor =
+                ArgumentCaptor.forClass(PasswordResetEmailRequestedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        PasswordResetEmailRequestedEvent event = eventCaptor.getValue();
+        assertThat(event.email()).isEqualTo("john@example.com");
+        assertThat(event.firstName()).isEqualTo("John");
+        assertThat(event.resetLink()).startsWith(BASE_URL + "/reset-password?token=");
     }
 
     @Test
@@ -233,7 +242,7 @@ class VerificationServiceImplTest {
 
         verify(tokenRepository, never()).invalidateActiveTokens(any(UUID.class), any(TokenType.class));
         verify(tokenRepository, never()).save(any(VerificationToken.class));
-        verify(mailService, never()).sendPasswordResetEmail(anyString(), anyString(), anyString());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test

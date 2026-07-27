@@ -72,4 +72,22 @@ public class AppConfig {
         return Executors.newFixedThreadPool(poolSize, new CustomizableThreadFactory("weather-fetch-"));
     }
 
+    /**
+     * Dedicated, bounded thread pool used by
+     * {@link com.weatherviewer.service.impl.MailEventListener} to send
+     * verification/password-reset emails off the request thread.
+     * <p>
+     * Kept separate from {@link #weatherFetchExecutor} for the same reason
+     * that one is kept separate from the JVM-wide common pool: a burst of
+     * sign-ups or reset requests (each possibly retried a few times against
+     * a slow SMTP server) shouldn't be able to starve weather-dashboard
+     * fetches, or vice versa. Sized via {@code mail.async.pool-size}
+     * (default 5) and shut down automatically on context close.
+     */
+    @Bean(name = "mailTaskExecutor", destroyMethod = "shutdown")
+    public ExecutorService mailTaskExecutor(
+            @Value("${mail.async.pool-size:5}") int poolSize) {
+        return Executors.newFixedThreadPool(poolSize, new CustomizableThreadFactory("mail-send-"));
+    }
+
 }
