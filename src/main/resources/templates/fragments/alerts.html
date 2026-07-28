@@ -4,8 +4,8 @@
              th:id="'successToast'"
              th:if="${successMessage != null}">
             <div class="toast-header bg-success text-white">
-                <strong class="me-auto">Success</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                <strong class="me-auto" th:text="#{alerts.success-heading}">Success</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" th:aria-label="#{alerts.close}" aria-label="Close"></button>
             </div>
             <div class="toast-body" th:text="${successMessage}">Success message</div>
         </div>
@@ -14,8 +14,8 @@
              th:id="'errorToast'"
              th:if="${errorMessage != null}">
             <div class="toast-header bg-danger text-white">
-                <strong class="me-auto">Error</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                <strong class="me-auto" th:text="#{alerts.error-heading}">Error</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" th:aria-label="#{alerts.close}" aria-label="Close"></button>
             </div>
             <div class="toast-body" th:text="${errorMessage}">Error message</div>
         </div>
@@ -24,8 +24,8 @@
              th:id="'errorsToast'"
              th:if="${errorMessages != null}">
             <div class="toast-header bg-danger text-white">
-                <strong class="me-auto">Errors</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                <strong class="me-auto" th:text="#{alerts.errors-heading}">Errors</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" th:aria-label="#{alerts.close}" aria-label="Close"></button>
             </div>
             <div class="toast-body">
                 <ul>
