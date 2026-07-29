@@ -10,9 +10,9 @@
     </parent>
     <groupId>com</groupId>
     <artifactId>WeatherViewer</artifactId>
-    <version>1.1.0-RELEASE</version>
+    <version>1.2.0</version>
     <name>WeatherViewer</name>
-    <description>A Spring Boot application for checking weather forecasts, managing favorite locations, and tracking request metrics with built-in rate limiting.</description>
+    <description>A Spring Boot application for checking weather forecasts, managing favorite locations, and tracking request metrics with built-in rate limiting. Supports English and Ukrainian locales.</description>
     <url/>
     <licenses>
         <license>
