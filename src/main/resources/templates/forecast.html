@@ -22,7 +22,7 @@
                             <h5 class="card-title mb-2" th:text="${#dates.format(forecast.date, 'HH:mm')}"></h5>
                             <h3 class="text-primary mb-2" th:text="${#numbers.formatDecimal(forecast.temperature, 1, 2)} + ${temperatureSymbol}"></h3>
                             <img class="mb-2 mx-auto" th:src="@{'/images/' + ${forecast.weatherCondition} + '-' + ${forecast.timeOfDay} + '.svg'}" style="width:150px;" th:alt="|${forecast.weatherCondition} + ' ' + ${forecast.timeOfDay}|">
-                            <p class="card-text text-muted mb-0" th:text="${#strings.capitalize(forecast.description)}"></p>
+                            <p class="card-text text-muted mb-0" th:text="#{__${'weather-condition.' + forecast.weatherCondition}__}"></p>
                         </div>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                             <h3 class="text-primary mb-1" th:text="${#numbers.formatDecimal(forecast.temperature, 1, 2)} + ${temperatureSymbol}"></h3>
                             <p class="text-secondary mb-2" th:text="${#numbers.formatDecimal(forecast.temperatureMinimum, 1, 2)} + ${temperatureSymbol}"></p>
                             <img class="mb-2 mx-auto" th:src="@{'/images/' + ${forecast.weatherCondition} + '-' + ${forecast.timeOfDay} + '.svg'}" style="width:150px;" th:alt="|${forecast.weatherCondition} + ' ' + ${forecast.timeOfDay}|">
-                            <p class="card-text text-muted mb-0" th:text="${#strings.capitalize(#strings.toLowerCase(forecast.weatherCondition))}"></p>
+                            <p class="card-text text-muted mb-0" th:text="#{__${'weather-condition.' + forecast.weatherCondition}__}"></p>
                         </div>
                     </div>
                 </div>
