@@ -21,6 +21,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -174,15 +176,19 @@ public class LocationController {
         return locationService.add(addLocationDto);
     }
 
-    @Operation(tags = "Locations - Admin", summary = "List all locations", description = "Requires the `users:write` authority.")
-    @ApiResponse(responseCode = "200", description = "All saved locations across all users",
-            content = @Content(mediaType = "application/json",
-                    array = @ArraySchema(schema = @Schema(implementation = LocationDto.class))))
+    @Operation(tags = "Locations - Admin",
+            summary = "List all locations, paginated",
+            description = "Requires the `users:write` authority. Query params: `page` (0-indexed, default 0), " +
+                    "`size` (default 20, capped at 100), `sort` (e.g. `sort=name,asc`). Unbounded listing isn't " +
+                    "offered - this spans every user's saved locations system-wide."
+    )
+    @ApiResponse(responseCode = "200", description = "One page of saved locations across all users",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     @GetMapping
     @PreAuthorize("hasAuthority('users:write')")
-    public List<LocationDto> getLocations() {
-        log.info("Request: getLocations called");
-        return locationService.getLocations();
+    public Page<LocationDto> getLocations(@Parameter(hidden = true) Pageable pageable) {
+        log.info("Request: getLocations called with pageable={}", pageable);
+        return locationService.getLocations(pageable);
     }
 
     @Operation(tags = "Locations - Admin", summary = "Get a location by ID", description = "Requires the `users:write` authority.")

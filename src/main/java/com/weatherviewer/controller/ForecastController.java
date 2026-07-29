@@ -4,6 +4,7 @@ import com.weatherviewer.dto.WeatherDto;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.service.helper.UnitConverter;
 import com.weatherviewer.validation.annotation.Latitude;
 import com.weatherviewer.validation.annotation.Longitude;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class ForecastController {
 
     private final WeatherApiService weatherApiService;
     private final LocationService locationService;
+    private final UnitConverter unitConverter;
 
     /**
      * Renders the forecast page for the saved location at the given
@@ -42,8 +44,10 @@ public class ForecastController {
         log.info("Fetching forecast for user={} at lat={}, lon={}", user.getUsername(), latitude, longitude);
 
         String locationName = locationService.getByCoordinatesAndUserId(latitude, longitude, user.getId()).getName();
-        List<WeatherDto> hourlyForecast = weatherApiService.getHourlyForecastByCoordinates(latitude, longitude);
-        List<WeatherDto> dailyForecast = weatherApiService.getDailyForecastByCoordinates(latitude, longitude);
+        List<WeatherDto> hourlyForecast = unitConverter.toDisplayUnits(
+                weatherApiService.getHourlyForecastByCoordinates(latitude, longitude), user.getUnits());
+        List<WeatherDto> dailyForecast = unitConverter.toDisplayUnits(
+                weatherApiService.getDailyForecastByCoordinates(latitude, longitude), user.getUnits());
 
         log.info("Forecast retrieved for location={} (user={})", locationName, user.getUsername());
 
@@ -52,6 +56,8 @@ public class ForecastController {
         model.addAttribute("dailyForecast", dailyForecast);
 
         model.addAttribute("login", user.getFullName());
+        model.addAttribute("temperatureSymbol", unitConverter.temperatureSymbol(user.getUnits()));
+        model.addAttribute("windSpeedUnit", unitConverter.windSpeedUnit(user.getUnits()));
 
         return "forecast";
     }

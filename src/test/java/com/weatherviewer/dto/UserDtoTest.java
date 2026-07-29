@@ -1,6 +1,7 @@
 package com.weatherviewer.dto;
 
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ class UserDtoTest {
                 .setEmail("john@example.com")
                 .setStatus(UserStatus.ACTIVE)
                 .setRole(Role.USER)
+                .setUnits(UnitSystem.METRIC)
                 .setLocations(List.of())
                 .setCreatedAt(LocalDateTime.now());
     }

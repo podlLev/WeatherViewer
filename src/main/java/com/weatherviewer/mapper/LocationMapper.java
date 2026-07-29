@@ -35,9 +35,16 @@ public abstract class LocationMapper {
      */
     @Mapping(target = "user", expression = "java(userRepository.getReferenceById(addLocationDto.getUserId()))")
     @Mapping(target = "favorite", expression = "java(addLocationDto.getFavorite() != null ? addLocationDto.getFavorite() : false)")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     public abstract Location fromDto(AddLocationDto addLocationDto);
 
-    /** Builds a {@link Location} from its full DTO representation (e.g. for updates). */
+    /**
+     * Builds a {@link Location} from its full DTO representation (e.g. for updates).
+     * The owning {@code user} is intentionally left unset here — callers that need
+     * a persisted, owned entity set it separately after this conversion.
+     */
+    @Mapping(target = "user", ignore = true)
     public abstract Location fromDto(LocationDto locationDto);
 
     /**

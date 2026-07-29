@@ -26,4 +26,19 @@ class ExternalHttpCallExceptionTest {
                 .hasMessage("External call failed");
     }
 
+    @Test
+    void singleArgConstructor_defaultsToRetryable() {
+        ExternalHttpCallException ex = new ExternalHttpCallException("Timeout");
+        assertThat(ex.isRetryable()).isTrue();
+    }
+
+    @Test
+    void twoArgConstructor_setsRetryableFlag() {
+        ExternalHttpCallException retryable = new ExternalHttpCallException("5xx from provider", true);
+        ExternalHttpCallException notRetryable = new ExternalHttpCallException("404 unknown city", false);
+
+        assertThat(retryable.isRetryable()).isTrue();
+        assertThat(notRetryable.isRetryable()).isFalse();
+    }
+
 }

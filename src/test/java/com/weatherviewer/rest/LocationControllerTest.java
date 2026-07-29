@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weatherviewer.dto.AddLocationDto;
 import com.weatherviewer.dto.LocationDto;
 import com.weatherviewer.exception.notfound.LocationNotFoundException;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -51,7 +54,9 @@ class LocationControllerTest {
                 "hashed",
                 Set.of(),
                 true,
-                "John Doe"
+                "John Doe",
+                UnitSystem.METRIC,
+                null
         );
     }
 
@@ -159,13 +164,13 @@ class LocationControllerTest {
     }
 
     @Test
-    void getLocations_returns200AndList() throws Exception {
+    void getLocations_returns200AndPage() throws Exception {
         List<LocationDto> dtos = List.of(new LocationDto().setName("Kyiv"));
-        when(locationService.getLocations()).thenReturn(dtos);
+        when(locationService.getLocations(any(Pageable.class))).thenReturn(new PageImpl<>(dtos));
 
         mockMvc.perform(get("/api/v1/locations"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Kyiv"));
+                .andExpect(jsonPath("$.content[0].name").value("Kyiv"));
     }
 
     @Test

@@ -12,6 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.ArrayList;
@@ -102,13 +105,14 @@ class LocationServiceImplTest {
 
     @Test
     void getLocations_returnsAllMapped() {
-        List<Location> locations = List.of(new Location());
-        List<LocationDto> dtos = List.of(new LocationDto());
+        Location location = new Location();
+        LocationDto dto = new LocationDto();
+        Pageable pageable = PageRequest.of(0, 20);
 
-        when(locationRepository.findAll()).thenReturn(locations);
-        when(locationMapper.toDtoList(locations)).thenReturn(dtos);
+        when(locationRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(location)));
+        when(locationMapper.toDto(location)).thenReturn(dto);
 
-        assertThat(service.getLocations()).isEqualTo(dtos);
+        assertThat(service.getLocations(pageable).getContent()).containsExactly(dto);
     }
 
     @Test
@@ -152,6 +156,102 @@ class LocationServiceImplTest {
         when(locationMapper.toDtoList(locations)).thenReturn(dtos);
 
         assertThat(service.getByUserId(userId)).isEqualTo(dtos);
+    }
+
+    @Test
+    void countByUserId_returnsRepositoryCount() {
+        UUID userId = UUID.randomUUID();
+        when(locationRepository.countByUserId(userId)).thenReturn(3L);
+
+        assertThat(service.countByUserId(userId)).isEqualTo(3L);
+    }
+
+    @Test
+    void getByUserIdSorted_defaultSort_queriesByCreatedAtDesc() {
+        UUID userId = UUID.randomUUID();
+        Location location = new Location();
+        LocationDto dto = new LocationDto();
+        Pageable requested = PageRequest.of(0, 12);
+        org.springframework.data.domain.Page<Location> repoPage = new PageImpl<>(List.of(location), requested, 1);
+
+        when(locationRepository.findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class)))
+                .thenReturn(repoPage);
+        when(locationMapper.toDto(location)).thenReturn(dto);
+
+        org.springframework.data.domain.Page<LocationDto> result = service.getByUserIdSorted(userId, "date", requested);
+
+        assertThat(result.getContent()).containsExactly(dto);
+    }
+
+    @Test
+    void getByUserIdSorted_nullSort_fallsBackToDate() {
+        UUID userId = UUID.randomUUID();
+        Pageable requested = PageRequest.of(0, 12);
+
+        when(locationRepository.findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), requested, 0));
+
+        org.springframework.data.domain.Page<LocationDto> result = service.getByUserIdSorted(userId, null, requested);
+
+        assertThat(result.getTotalElements()).isZero();
+    }
+
+    @Test
+    void getByUserIdSorted_nameAsc_queriesByUserId() {
+        UUID userId = UUID.randomUUID();
+        Pageable requested = PageRequest.of(0, 12);
+
+        when(locationRepository.findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), requested, 0));
+
+        service.getByUserIdSorted(userId, "nameAsc", requested);
+
+        verify(locationRepository).findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void getByUserIdSorted_nameDesc_queriesByUserId() {
+        UUID userId = UUID.randomUUID();
+        Pageable requested = PageRequest.of(0, 12);
+
+        when(locationRepository.findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), requested, 0));
+
+        service.getByUserIdSorted(userId, "nameDesc", requested);
+
+        verify(locationRepository).findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void getByUserIdSorted_favoriteFirst_queriesByUserId() {
+        UUID userId = UUID.randomUUID();
+        Pageable requested = PageRequest.of(0, 12);
+
+        when(locationRepository.findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), requested, 0));
+
+        service.getByUserIdSorted(userId, "favoriteFirst", requested);
+
+        verify(locationRepository).findByUserId(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class));
+    }
+
+    @Test
+    void getByUserIdSorted_favoritesOnly_queriesFavoriteTrue() {
+        UUID userId = UUID.randomUUID();
+        Location location = new Location();
+        LocationDto dto = new LocationDto();
+        Pageable requested = PageRequest.of(0, 12);
+        org.springframework.data.domain.Page<Location> repoPage = new PageImpl<>(List.of(location), requested, 1);
+
+        when(locationRepository.findByUserIdAndFavoriteTrue(org.mockito.ArgumentMatchers.eq(userId), any(Pageable.class)))
+                .thenReturn(repoPage);
+        when(locationMapper.toDto(location)).thenReturn(dto);
+
+        org.springframework.data.domain.Page<LocationDto> result =
+                service.getByUserIdSorted(userId, "favoritesOnly", requested);
+
+        assertThat(result.getContent()).containsExactly(dto);
+        verify(locationRepository, never()).findByUserId(any(UUID.class), any(Pageable.class));
     }
 
     @Test

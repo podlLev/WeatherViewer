@@ -5,8 +5,9 @@ import com.weatherviewer.dto.UpdateUserDto;
 import com.weatherviewer.dto.UpdateUserRoleDto;
 import com.weatherviewer.dto.UserDto;
 import com.weatherviewer.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,8 +26,12 @@ public interface UserService {
      */
     UUID create(CreateUserDto createUserDto);
 
-    /** Returns every registered user account (admin use). */
-    List<UserDto> getUsers();
+    /**
+     * Returns registered user accounts a page at a time (admin use).
+     * Unbounded {@code findAll()} doesn't scale once the user base grows
+     * past a trivial size, so this is the only way callers can list users.
+     */
+    Page<UserDto> getUsers(Pageable pageable);
 
     /**
      * Fetches the raw {@link User} entity by ID.

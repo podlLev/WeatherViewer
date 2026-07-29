@@ -1,0 +1,62 @@
+/*
+ * Dark-mode support, layered on top of Bootstrap 5.3's built-in
+ * `data-bs-theme` color modes. Bootstrap's own components (cards, forms,
+ * navbars, toasts, etc.) already re-theme themselves off `data-bs-theme`;
+ * the overrides below only cover this app's custom, non-Bootstrap classes
+ * (the auth pages' `.bg-image`/`.form`, and the toast font import) that
+ * don't automatically follow the color mode.
+ */
+
+body {
+    transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+/* Auth pages (sign-in / sign-up / forgot / reset password) */
+[data-bs-theme="dark"] .bg-image {
+    filter: brightness(0.45) saturate(0.9);
+}
+
+[data-bs-theme="dark"] .form {
+    background-color: rgba(33, 37, 41, 0.92);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .form .text-muted {
+    color: #adb5bd !important;
+}
+
+/* Toasts (fragments/alerts.html) render on a light card regardless of page theme by design.
+   Text color alone isn't enough here — Bootstrap's dark-mode .toast background is dark by
+   default, so without forcing the background too, this dark (#222) text sits on a dark card. */
+[data-bs-theme="dark"] .toast {
+    --bs-toast-bg: #fff;
+}
+
+[data-bs-theme="dark"] .toast-body,
+[data-bs-theme="dark"] .toast-header {
+    color: #222;
+    background-color: #fff;
+}
+
+/* Weather cards (home.html) — fixed min-height so cards line up visually
+   even when description length differs (e.g. "Overcast clouds" vs
+   "Moderate rain"), and regardless of which flex line they wrap onto. */
+.weather-card {
+    width: 38rem;
+    min-height: 650px;
+}
+
+/* Theme toggle button in the header */
+.theme-toggle-btn {
+    border: none;
+    background: transparent;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--bs-body-color);
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.theme-toggle-btn:hover {
+    background-color: var(--bs-secondary-bg);
+}

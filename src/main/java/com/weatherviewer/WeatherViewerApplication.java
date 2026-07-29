@@ -3,6 +3,7 @@ package com.weatherviewer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.util.TimeZone;
 
@@ -12,10 +13,14 @@ import java.util.TimeZone;
  * Bootstraps the application context and enables Spring's caching
  * abstraction ({@link EnableCaching}), which backs the weather/forecast/
  * geocoding response caching in
- * {@link com.weatherviewer.service.integration.WeatherApiCache}.
+ * {@link com.weatherviewer.service.integration.WeatherApiCache}, and
+ * Spring's {@code @Async} support ({@link EnableAsync}), which backs
+ * asynchronous mail dispatch in
+ * {@link com.weatherviewer.service.impl.MailEventListener}.
  */
 @SpringBootApplication
 @EnableCaching
+@EnableAsync
 public class WeatherViewerApplication {
 
     /**

@@ -9,14 +9,16 @@ import com.weatherviewer.exception.notfound.UserNotFoundException;
 import com.weatherviewer.mapper.UserMapper;
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.repository.UserRepository;
 import com.weatherviewer.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -45,8 +47,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserDto> getUsers() {
-        return userRepository.findAll().stream().map(userMapper::toDto).toList();
+    public Page<UserDto> getUsers(Pageable pageable) {
+        return userRepository.findAll(pageable).map(userMapper::toDto);
     }
 
     @Override
@@ -98,6 +100,10 @@ public class UserServiceImpl implements UserService {
 
         if (updateUserDto.getPassword() != null && !updateUserDto.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(updateUserDto.getPassword()));
+        }
+
+        if (updateUserDto.getUnits() != null && !updateUserDto.getUnits().isBlank()) {
+            user.setUnits(UnitSystem.getInstance(updateUserDto.getUnits()));
         }
 
         userRepository.save(user);

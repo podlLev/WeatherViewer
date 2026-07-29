@@ -10,17 +10,34 @@
             <div class="col d-flex">
                 <div th:replace="~{search-component}"></div>
             </div>
+            <div class="col-auto d-flex align-items-center">
+                <div class="dropdown me-2">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="langDropdownBtn"
+                            data-bs-toggle="dropdown" aria-expanded="false" th:attr="aria-label=#{header.language}, title=#{header.language}">
+                        <span th:text="${#locale.language == 'uk'} ? 'UA' : 'EN'">EN</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdownBtn">
+                        <li><a class="dropdown-item" th:classappend="${#locale.language == 'en'} ? 'active'" th:href="@{''(lang='en')}">English</a></li>
+                        <li><a class="dropdown-item" th:classappend="${#locale.language == 'uk'} ? 'active'" th:href="@{''(lang='uk')}">Українська</a></li>
+                    </ul>
+                </div>
+                <button type="button" id="theme-toggle-btn" class="theme-toggle-btn"
+                        th:attr="aria-label=#{header.theme.dark-mode}, title=#{header.theme.dark-mode}"
+                        aria-label="Switch to dark mode" title="Switch to dark mode">
+                    <i class="bi bi-moon-stars-fill"></i>
+                </button>
+            </div>
             <div class="col d-flex justify-content-end" th:classappend="${login}? 'd-none'">
-                <a class="btn btn-outline-primary px-3" href="sign-in" role="button" th:href="@{/sign-in}">Sign in</a>
-                <a class="btn btn-primary px-3 ms-2" href="sign-up" role="button" th:href="@{/sign-up}">Sign up</a>
+                <a class="btn btn-outline-primary px-3" href="sign-in" role="button" th:href="@{/sign-in}" th:text="#{header.sign-in}">Sign in</a>
+                <a class="btn btn-primary px-3 ms-2" href="sign-up" role="button" th:href="@{/sign-up}" th:text="#{header.sign-up}">Sign up</a>
             </div>
             <div class="col d-flex justify-content-end align-items-center" th:classappend="!(${login})? 'd-none' : ''">
-                <a th:href="@{/profile}" class="text-dark text-decoration-none fw-bold d-flex align-items-center">
+                <a th:href="@{/profile}" class="text-body text-decoration-none fw-bold d-flex align-items-center">
                     <i class="bi bi-person-circle fs-3 me-2"></i>
                     <span th:text="${login}">Username</span>
                 </a>
                 <form method="post" th:action="@{/sign-out}">
-                    <button class="btn btn-outline-primary px-3 ms-4" type="submit">Sign out</button>
+                    <button class="btn btn-outline-primary px-3 ms-4" type="submit" th:text="#{header.sign-out}">Sign out</button>
                 </form>
             </div>
             <div th:replace="~{fragments/alerts :: alertToasts(${successMessage}, ${errorMessage}, ${errorMessages})}"></div>

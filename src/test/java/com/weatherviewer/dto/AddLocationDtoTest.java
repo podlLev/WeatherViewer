@@ -1,5 +1,6 @@
 package com.weatherviewer.dto;
 
+import com.weatherviewer.validation.validator.LocationLimitValidator;
 import com.weatherviewer.validation.validator.UniqueLocationValidator;
 import jakarta.validation.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +16,7 @@ class AddLocationDtoTest {
 
     @BeforeEach
     void setUp() {
-        validator = skipValidator(UniqueLocationValidator.class);
+        validator = skipValidator(UniqueLocationValidator.class, LocationLimitValidator.class);
     }
 
     private AddLocationDto validDto() {

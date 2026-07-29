@@ -1,6 +1,7 @@
 package com.weatherviewer.dto;
 
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -45,6 +46,10 @@ public class UserDto {
     @Schema(description = "Account role")
     @NotNull(message = "Role cannot be null")
     private Role role;
+
+    @Schema(description = "Preferred unit system for displaying weather")
+    @NotNull(message = "Units cannot be null")
+    private UnitSystem units;
 
     @Schema(description = "Locations saved by this user")
     @NotNull(message = "Locations list cannot be null")

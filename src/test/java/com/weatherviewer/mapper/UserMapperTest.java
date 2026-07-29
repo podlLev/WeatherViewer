@@ -53,7 +53,7 @@ class UserMapperTest {
     }
 
     @Test
-    void fromRecord_setsDefaultStatusActive() {
+    void fromRecord_setsDefaultStatusPending() {
         CreateUserDto dto = new CreateUserDto()
                 .setFirstName("John")
                 .setLastName("Doe")
@@ -62,7 +62,7 @@ class UserMapperTest {
 
         User result = mapper.fromRecord(dto);
 
-        assertThat(result.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(result.getStatus()).isEqualTo(UserStatus.PENDING);
     }
 
     @Test

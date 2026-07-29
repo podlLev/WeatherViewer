@@ -7,7 +7,6 @@ import com.weatherviewer.dto.UserDto;
 import com.weatherviewer.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,11 +17,12 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -84,14 +84,19 @@ public class UserController {
         return userService.create(createUserDto);
     }
 
-    @Operation(summary = "List all users")
-    @ApiResponse(responseCode = "200", description = "All user accounts",
-            content = @Content(mediaType = "application/json",
-                    array = @ArraySchema(schema = @Schema(implementation = UserDto.class))))
+    @Operation(
+            summary = "List all users, paginated",
+            description = "Query params: `page` (0-indexed, default 0), `size` (default 20, capped at 100), " +
+                    "`sort` (e.g. `sort=email,asc`). Unbounded listing isn't offered - the user base is expected " +
+                    "to grow past what's reasonable to return in one response."
+    )
+    @ApiResponse(responseCode = "200", description = "One page of user accounts",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class)))
     @GetMapping
-    public List<UserDto> getUsers() {
-        log.info("Request: getUsers called");
-        return userService.getUsers();
+    public Page<UserDto> getUsers(
+            @Parameter(hidden = true) Pageable pageable) {
+        log.info("Request: getUsers called with pageable={}", pageable);
+        return userService.getUsers(pageable);
     }
 
     @Operation(summary = "Get a user by ID")

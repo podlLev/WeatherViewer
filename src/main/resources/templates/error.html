@@ -7,9 +7,9 @@
 
 <th:block th:fragment="bodyContent">
     <div class="container text-center mt-5">
-        <h1 class="display-4">Oops! Something Went Wrong</h1>
-        <p class="lead">We're sorry, but an unexpected error has occurred. Please try again later.</p>
-        <a class="btn btn-primary" th:href="@{/}">Go to Home</a>
+        <h1 class="display-4" th:text="#{error.title}">Oops! Something Went Wrong</h1>
+        <p class="lead" th:text="#{error.message}">We're sorry, but an unexpected error has occurred. Please try again later.</p>
+        <a class="btn btn-primary" th:href="@{/}" th:text="#{error.go-home}">Go to Home</a>
     </div>
 </th:block>
 

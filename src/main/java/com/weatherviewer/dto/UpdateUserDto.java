@@ -39,4 +39,7 @@ public class UpdateUserDto {
     @ToString.Exclude
     private String password;
 
+    @Schema(description = "Preferred unit system for displaying weather (\"METRIC\" or \"IMPERIAL\"). Omit to keep the current preference.", example = "IMPERIAL")
+    private String units;
+
 }

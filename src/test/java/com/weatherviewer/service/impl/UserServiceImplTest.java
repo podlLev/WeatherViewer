@@ -5,10 +5,12 @@ import com.weatherviewer.dto.UpdateUserDto;
 import com.weatherviewer.dto.UpdateUserRoleDto;
 import com.weatherviewer.dto.UserDto;
 import com.weatherviewer.exception.EmailAlreadyInUseException;
+import com.weatherviewer.exception.notfound.UnitSystemNotFoundException;
 import com.weatherviewer.exception.notfound.UserNotFoundException;
 import com.weatherviewer.mapper.UserMapper;
 import com.weatherviewer.model.User;
 import com.weatherviewer.model.enums.Role;
+import com.weatherviewer.model.enums.UnitSystem;
 import com.weatherviewer.model.enums.UserStatus;
 import com.weatherviewer.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -25,6 +30,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -72,15 +78,16 @@ class UserServiceImplTest {
     }
 
     @Test
-    void getUsers_returnsMappedList() {
+    void getUsers_returnsMappedPage() {
         UUID id = UUID.randomUUID();
         User user = user(id);
         UserDto dto = new UserDto();
+        Pageable pageable = PageRequest.of(0, 20);
 
-        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(userRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(user)));
         when(userMapper.toDto(user)).thenReturn(dto);
 
-        assertThat(service.getUsers()).containsExactly(dto);
+        assertThat(service.getUsers(pageable).getContent()).containsExactly(dto);
     }
 
     @Test
@@ -238,6 +245,94 @@ class UserServiceImplTest {
         service.update(id, dto);
 
         verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    void update_withUnits_updatesUnits() {
+        UUID id = UUID.randomUUID();
+        User user = user(id);
+        UpdateUserDto dto = new UpdateUserDto()
+                .setEmail("john@example.com")
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setUnits("IMPERIAL");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(new UserDto());
+
+        service.update(id, dto);
+
+        assertThat(user.getUnits()).isEqualTo(UnitSystem.IMPERIAL);
+    }
+
+    @Test
+    void update_withUnitsLowercase_isCaseInsensitive() {
+        UUID id = UUID.randomUUID();
+        User user = user(id);
+        UpdateUserDto dto = new UpdateUserDto()
+                .setEmail("john@example.com")
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setUnits("imperial");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(new UserDto());
+
+        service.update(id, dto);
+
+        assertThat(user.getUnits()).isEqualTo(UnitSystem.IMPERIAL);
+    }
+
+    @Test
+    void update_nullUnits_leavesExistingUnitsUnchanged() {
+        UUID id = UUID.randomUUID();
+        User user = user(id).setUnits(UnitSystem.METRIC);
+        UpdateUserDto dto = new UpdateUserDto()
+                .setEmail("john@example.com")
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setUnits(null);
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(new UserDto());
+
+        service.update(id, dto);
+
+        assertThat(user.getUnits()).isEqualTo(UnitSystem.METRIC);
+    }
+
+    @Test
+    void update_blankUnits_leavesExistingUnitsUnchanged() {
+        UUID id = UUID.randomUUID();
+        User user = user(id).setUnits(UnitSystem.METRIC);
+        UpdateUserDto dto = new UpdateUserDto()
+                .setEmail("john@example.com")
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setUnits("   ");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        when(userMapper.toDto(user)).thenReturn(new UserDto());
+
+        service.update(id, dto);
+
+        assertThat(user.getUnits()).isEqualTo(UnitSystem.METRIC);
+    }
+
+    @Test
+    void update_invalidUnits_throwsUnitSystemNotFoundException() {
+        UUID id = UUID.randomUUID();
+        User user = user(id);
+        UpdateUserDto dto = new UpdateUserDto()
+                .setEmail("john@example.com")
+                .setFirstName("John")
+                .setLastName("Doe")
+                .setUnits("KELVIN");
+
+        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.update(id, dto))
+                .isInstanceOf(UnitSystemNotFoundException.class);
     }
 
     @Test
