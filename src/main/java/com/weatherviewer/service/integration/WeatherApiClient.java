@@ -178,24 +178,24 @@ public class WeatherApiClient {
         return APPID_PATTERN.matcher(url).replaceAll("$1***");
     }
 
-    /** Builds a request URL for a city-name-based endpoint, with metric units and English descriptions. */
+    /** Builds a request URL for a city-name-based endpoint, with metric units and locale-appropriate descriptions. */
     private String buildCityUrl(String suffix, String city) {
         return UriComponentsBuilder.fromUri(URI.create(baseApiUrl + suffix))
                 .queryParam("appid", apiKey)
                 .queryParam("units", "metric")
-                .queryParam("lang", "en")
+                .queryParam("lang", WeatherApiLocale.resolve())
                 .queryParam("q", city)
                 .encode(StandardCharsets.UTF_8)
                 .build()
                 .toUriString();
     }
 
-    /** Builds a request URL for a coordinate-based endpoint, with metric units and English descriptions. */
+    /** Builds a request URL for a coordinate-based endpoint, with metric units and locale-appropriate descriptions. */
     private String buildCoordsUrl(String suffix, double latitude, double longitude) {
         return UriComponentsBuilder.fromUri(URI.create(baseApiUrl + suffix))
                 .queryParam("appid", apiKey)
                 .queryParam("units", "metric")
-                .queryParam("lang", "en")
+                .queryParam("lang", WeatherApiLocale.resolve())
                 .queryParam("lat", latitude)
                 .queryParam("lon", longitude)
                 .encode(StandardCharsets.UTF_8)

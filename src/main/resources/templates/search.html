@@ -10,7 +10,7 @@
 <th:block th:fragment="bodyContent">
     <div th:replace="~{header-component}"></div>
     <div class="container">
-        <h2>Search results</h2>
+        <h2 th:text="#{search.results-title}">Search results</h2>
         <div class="row row-cols-3 mt-3">
             <div class="col mb-3" th:each="location : ${foundLocations}">
                 <div class="card">
@@ -26,13 +26,13 @@
                             <span th:if="${location.country == null} and ${location.state != null}"
                                   th:text="${location.state}">State</span>
 
-                            <span th:if="${location.country == null} and ${location.state == null}">No data</span>
+                            <span th:if="${location.country == null} and ${location.state == null}" th:text="#{search.no-data}">No data</span>
                         </p>
                         <form th:action="@{/search/add}" method="post">
                             <input type="hidden" th:name="name" th:value="${location.name}">
                             <input type="hidden" th:name="latitude" th:value="${location.latitude}">
                             <input type="hidden" th:name="longitude" th:value="${location.longitude}">
-                            <button class="btn btn-primary" type="submit">Add to tracked locations</button>
+                            <button class="btn btn-primary" type="submit" th:text="#{search.add-location}">Add to tracked locations</button>
                         </form>
                     </div>
                 </div>
