@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
@@ -23,6 +24,7 @@ import org.springframework.web.client.RestClientResponseException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -62,6 +64,10 @@ class WeatherApiClientTest {
         ReflectionTestUtils.setField(client, "forecastApiUrlSuffix", "/data/2.5/forecast");
         ReflectionTestUtils.setField(client, "geocodingApiUrlSuffix", "/geo/1.0/direct");
 
+        // WeatherApiLocale.resolve() reads LocaleContextHolder; pin it so the
+        // "lang=en" assertions below don't depend on the host JVM's default locale.
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+
         lenient().doReturn(requestHeadersUriSpec).when(restClient).get();
         lenient().doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(any(URI.class));
         lenient().when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
@@ -74,6 +80,7 @@ class WeatherApiClientTest {
     @AfterEach
     void tearDown() {
         ((Logger) LoggerFactory.getLogger(WeatherApiClient.class)).detachAppender(logAppender);
+        LocaleContextHolder.resetLocaleContext();
     }
 
     @Test
@@ -240,6 +247,34 @@ class WeatherApiClientTest {
         assertThat(uri).contains("lang=en");
         assertThat(uri).contains("q=Kyiv");
         assertThat(uri).contains("appid=" + SECRET_API_KEY);
+    }
+
+    @Test
+    void fetchCurrentWeatherByCity_ukrainianLocale_buildsUrlWithUkrainianLang() throws Exception {
+        LocaleContextHolder.setLocale(new Locale("uk"));
+        JsonNode mockNode = mock(JsonNode.class);
+        when(responseSpec.body(String.class)).thenReturn("{}");
+        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
+
+        client.fetchCurrentWeatherByCity("Kyiv");
+
+        ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
+        verify(requestHeadersUriSpec).uri(uriCaptor.capture());
+        assertThat(uriCaptor.getValue().toString()).contains("lang=uk");
+    }
+
+    @Test
+    void fetchCurrentWeatherByCity_unsupportedLocale_fallsBackToEnglishLang() throws Exception {
+        LocaleContextHolder.setLocale(Locale.GERMAN);
+        JsonNode mockNode = mock(JsonNode.class);
+        when(responseSpec.body(String.class)).thenReturn("{}");
+        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
+
+        client.fetchCurrentWeatherByCity("Kyiv");
+
+        ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
+        verify(requestHeadersUriSpec).uri(uriCaptor.capture());
+        assertThat(uriCaptor.getValue().toString()).contains("lang=en");
     }
 
     @Test
