@@ -101,7 +101,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/weatherviewer
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/weather-viewer
           tags: |
             type=raw,value=${{ steps.pom.outputs.version }}
             type=raw,value=latest
