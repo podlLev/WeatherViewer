@@ -46,6 +46,42 @@ body {
     min-height: 650px;
 }
 
+/* Leaflet map controls (map.html) — Leaflet's chrome is plain CSS/PNG
+   with no awareness of data-bs-theme, so it's re-skinned here to match
+   the app's dark mode instead of sitting as a white panel over the dark
+   basemap that map-init.js switches to. */
+[data-bs-theme="dark"] .leaflet-control-layers,
+[data-bs-theme="dark"] .leaflet-bar,
+[data-bs-theme="dark"] .leaflet-popup-content-wrapper,
+[data-bs-theme="dark"] .leaflet-popup-tip {
+    background-color: #2b3035;
+    color: #dee2e6;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
+}
+
+[data-bs-theme="dark"] .leaflet-bar a {
+    background-color: #2b3035;
+    color: #dee2e6;
+    border-bottom-color: #495057;
+}
+
+[data-bs-theme="dark"] .leaflet-bar a:hover {
+    background-color: #343a40;
+}
+
+[data-bs-theme="dark"] .leaflet-control-layers-toggle {
+    filter: invert(1) brightness(1.6);
+}
+
+[data-bs-theme="dark"] .leaflet-control-attribution {
+    background-color: rgba(43, 48, 53, 0.85);
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .leaflet-control-attribution a {
+    color: #9ec5fe;
+}
+
 /* Theme toggle button in the header */
 .theme-toggle-btn {
     border: none;

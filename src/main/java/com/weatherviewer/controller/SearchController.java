@@ -5,6 +5,7 @@ import com.weatherviewer.dto.GeoLocationDto;
 import com.weatherviewer.security.SecUser;
 import com.weatherviewer.service.LocationService;
 import com.weatherviewer.service.WeatherApiService;
+import com.weatherviewer.utils.SafeRedirectUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -55,19 +56,29 @@ public class SearchController {
     }
 
     /**
-     * Saves a chosen search result as a new location for the signed-in
-     * user. The submitted {@code userId} is always overwritten with the
-     * caller's own ID before validation, so a location can only ever be
-     * added to the signer's own account. On validation failure (blank
-     * name, out-of-range coordinates, or a duplicate name/coordinates for
-     * this user), the errors are flashed and the request redirects back to
-     * the dashboard without saving anything.
+     * Saves a chosen search result (or a point picked directly on the
+     * {@code /map} page) as a new location for the signed-in user. The
+     * submitted {@code userId} is always overwritten with the caller's own
+     * ID before validation, so a location can only ever be added to the
+     * signer's own account. On validation failure (blank name,
+     * out-of-range coordinates, or a duplicate name/coordinates for this
+     * user), the errors are flashed and the request redirects back without
+     * saving anything.
+     * <p>
+     * {@code redirectTo} lets a caller (e.g. the map page's "add location"
+     * form) choose where the request lands afterward instead of always
+     * going to the dashboard; it's validated by
+     * {@link SafeRedirectUtils} and falls back to {@code /} if missing or
+     * unsafe, so it can't be used to redirect off-site.
      */
     @PostMapping("/search/add")
     public String addLocation(@ModelAttribute("addLocation") AddLocationDto addLocationDto,
+                              @RequestParam(value = "redirectTo", required = false) String redirectTo,
                               @AuthenticationPrincipal SecUser secUser,
                               BindingResult bindingResult,
                               RedirectAttributes redirectAttributes) {
+        String target = SafeRedirectUtils.sanitize(redirectTo, "/");
+
         addLocationDto.setUserId(secUser.getId());
         validator.validate(addLocationDto, bindingResult);
 
@@ -78,13 +89,13 @@ public class SearchController {
             log.info("Failed to add location for user '{}': {}", secUser.getUsername(), errorMessages);
 
             redirectAttributes.addFlashAttribute("errorMessages", errorMessages);
-            return "redirect:/";
+            return "redirect:" + target;
         }
 
         locationService.add(addLocationDto);
         log.info("Location '{}' added successfully for user '{}'", addLocationDto.getName(), secUser.getUsername());
         redirectAttributes.addFlashAttribute("successMessage", "Location added successfully!");
-        return "redirect:/";
+        return "redirect:" + target;
     }
 
 }
