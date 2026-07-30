@@ -121,10 +121,10 @@ public class SecurityConfig {
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives(
                                         "default-src 'self'; " +
-                                                "script-src 'self' https://cdn.jsdelivr.net; " +
-                                                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://use.fontawesome.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
+                                                "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; " +
+                                                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://use.fontawesome.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; " +
                                                 "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com https://use.fontawesome.com https://cdnjs.cloudflare.com; " +
-                                                "connect-src 'self' https://cdn.jsdelivr.net; " +
+                                                "connect-src 'self' https://cdn.jsdelivr.net https://unpkg.com; " +
                                                 "img-src 'self' data: https:;"
                                 )
                         )
