@@ -60,3 +60,53 @@ body {
 .theme-toggle-btn:hover {
     background-color: var(--bs-secondary-bg);
 }
+
+/* Leaflet map (map.html) — leaflet.css hardcodes light backgrounds for its
+   own chrome (popups, zoom buttons, layer control, attribution) and loads
+   after this file, so these need !important to win the cascade. Using
+   Bootstrap's theme-aware CSS variables (rather than scoping under
+   [data-bs-theme="dark"]) means one rule set covers both themes, the same
+   way .theme-toggle-btn does above. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip,
+.leaflet-bar a,
+.leaflet-control-layers,
+.leaflet-control-layers-expanded {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+}
+
+.leaflet-bar a {
+    border-color: var(--bs-border-color) !important;
+}
+
+.leaflet-bar a:hover {
+    background-color: var(--bs-secondary-bg) !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--bs-body-color) !important;
+}
+
+.leaflet-control-attribution {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-secondary-color) !important;
+}
+
+.leaflet-control-attribution a {
+    color: var(--bs-link-color) !important;
+}
+
+/* The base OSM tile layer is a plain raster image with no dark variant of
+   its own, so it stays light regardless of data-bs-theme by default. This
+   inverts it into a legible dark basemap in dark mode using CSS alone
+   (reacts live when the theme toggles, no JS re-fetch needed). Scoped to
+   .base-map-tiles (set via the tileLayer's className option in
+   map-init.js) so it only touches the base layer -- NOT the weather
+   overlay tiles (precipitation/clouds/temperature/wind), which would
+   otherwise have their data-carrying colors inverted into nonsense, and
+   NOT the location markers, which live in a separate Leaflet pane and stay
+   their normal color in both themes for legibility. */
+[data-bs-theme="dark"] .base-map-tiles {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}

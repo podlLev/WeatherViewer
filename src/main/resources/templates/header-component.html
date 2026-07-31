@@ -11,6 +11,10 @@
                 <div th:replace="~{search-component}"></div>
             </div>
             <div class="col-auto d-flex align-items-center">
+                <a class="btn btn-outline-secondary btn-sm me-2" th:href="@{/map}"
+                   th:attr="aria-label=#{header.map}, title=#{header.map}" aria-label="Map" title="Map">
+                    <i class="bi bi-map"></i>
+                </a>
                 <div class="dropdown me-2">
                     <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="langDropdownBtn"
                             data-bs-toggle="dropdown" aria-expanded="false" th:attr="aria-label=#{header.language}, title=#{header.language}">
