@@ -97,16 +97,15 @@ body {
     color: var(--bs-link-color) !important;
 }
 
-/* The base OSM tile layer is a plain raster image with no dark variant of
-   its own, so it stays light regardless of data-bs-theme by default. This
-   inverts it into a legible dark basemap in dark mode using CSS alone
-   (reacts live when the theme toggles, no JS re-fetch needed). Scoped to
-   .base-map-tiles (set via the tileLayer's className option in
-   map-init.js) so it only touches the base layer -- NOT the weather
-   overlay tiles (precipitation/clouds/temperature/wind), which would
-   otherwise have their data-carrying colors inverted into nonsense, and
-   NOT the location markers, which live in a separate Leaflet pane and stay
-   their normal color in both themes for legibility. */
 [data-bs-theme="dark"] .base-map-tiles {
     filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.weather-card, .card {
+    transition: box-shadow 0.4s ease-out, border-color 0.4s ease-out;
+}
+
+.live-updated {
+    box-shadow: 0 0 0 2px var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
 }

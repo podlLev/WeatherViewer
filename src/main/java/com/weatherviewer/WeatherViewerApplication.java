@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.TimeZone;
 
@@ -13,14 +14,17 @@ import java.util.TimeZone;
  * Bootstraps the application context and enables Spring's caching
  * abstraction ({@link EnableCaching}), which backs the weather/forecast/
  * geocoding response caching in
- * {@link com.weatherviewer.service.integration.WeatherApiCache}, and
- * Spring's {@code @Async} support ({@link EnableAsync}), which backs
- * asynchronous mail dispatch in
- * {@link com.weatherviewer.service.impl.MailEventListener}.
+ * {@link com.weatherviewer.service.integration.WeatherApiCache}; Spring's
+ * {@code @Async} support ({@link EnableAsync}), which backs asynchronous
+ * mail dispatch in {@link com.weatherviewer.service.impl.MailEventListener};
+ * and {@code @Scheduled} support ({@link EnableScheduling}), which drives
+ * the periodic live weather broadcast in
+ * {@link com.weatherviewer.websocket.WeatherLiveUpdateScheduler}.
  */
 @SpringBootApplication
 @EnableCaching
 @EnableAsync
+@EnableScheduling
 public class WeatherViewerApplication {
 
     /**
