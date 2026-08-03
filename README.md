@@ -78,6 +78,33 @@ WeatherViewer is a personal weather dashboard for tracking the places you care a
 
 ## Architecture
 
+**System overview** — the app sits between the browser and four external dependencies. Every HTTP request passes through the rate limiter and the security filter chain before reaching a controller; live dashboard/forecast updates instead flow over a persistent WebSocket connection, pushed on a schedule rather than requested:
+
+```mermaid
+flowchart TB
+    Client[Browser client]
+    RL[Rate limiter]
+    Sec[Security filter chain]
+    Web[Controllers + REST]
+    WS[WebSocket / STOMP]
+    Svc[Services]
+    DB[(PostgreSQL)]
+    Cache[(Redis)]
+    Weather[(OpenWeatherMap API)]
+    Mail[(SMTP)]
+ 
+    Client --> RL --> Sec --> Web
+    Client -. live updates .-> WS
+    Web --> Svc
+    WS --> Svc
+    Svc --> DB
+    Svc --> Cache
+    Svc --> Weather
+    Svc --> Mail
+```
+
+Postgres holds users, locations, and tokens (schema managed by Liquibase). Redis backs both the rate limiter's fixed-window counters and the weather/forecast/geocoding cache. The two flows below zoom into the parts of this picture that need to tolerate a flaky dependency: weather reads and outbound mail.
+
 Two request paths matter most for reliability: reads that hit the OpenWeatherMap API, and emails triggered by account actions. Both are built so a slow or failing dependency degrades gracefully instead of taking the app down with it.
 
 **Weather read path** — a cache-aside read guarded by retry and a circuit breaker:
