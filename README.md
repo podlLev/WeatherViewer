@@ -10,13 +10,15 @@
   <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 17">
   <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" alt="Redis 7">
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white" alt="Docker ready">
-  <img src="https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white" alt="CI GitHub Actions">
+  <a href="https://github.com/podlLev/WeatherViewer/actions/workflows/ci.yml"><img src="https://github.com/podlLev/WeatherViewer/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status"></a>
+  <img src="https://raw.githubusercontent.com/podlLev/WeatherViewer/main/.github/badges/jacoco.svg" alt="Coverage">
 </p>
 
 <p align="center">
   <a href="#overview">Overview</a> ·
   <a href="#features">Features</a> ·
   <a href="#tech-stack">Tech Stack</a> ·
+  <a href="#architecture">Architecture</a> ·
   <a href="#getting-started">Getting Started</a> ·
   <a href="#api-documentation">API Docs</a> ·
   <a href="#observability">Observability</a> ·
@@ -73,6 +75,33 @@ WeatherViewer is a personal weather dashboard for tracking the places you care a
 | Containerization | Docker, Docker Compose (non-root runtime image)                                            |
 | CI/CD            | GitHub Actions (build/test, coverage, Docker Hub image push)                               |
 | External API     | [OpenWeatherMap](https://openweathermap.org/api) (current weather, forecast, geocoding)    |
+
+## Architecture
+
+Two request paths matter most for reliability: reads that hit the OpenWeatherMap API, and emails triggered by account actions. Both are built so a slow or failing dependency degrades gracefully instead of taking the app down with it.
+
+**Weather read path** — a cache-aside read guarded by retry and a circuit breaker:
+
+```mermaid
+flowchart LR
+    A[Controller] --> B["Cache<br/>@Cacheable"]
+    B --> C["Client<br/>retry + breaker"]
+    C --> D[("Weather API")]
+    C -. fallback .-> E["Fallback<br/>service unavailable"]
+```
+
+A cache hit never reaches `WeatherApiClient`. On a miss, every outbound call is wrapped with Resilience4j: transient failures are retried with backoff, and once OpenWeatherMap is failing consistently the breaker opens and short-circuits straight to the fallback instead of piling up slow requests — so one saved location failing to load doesn't take the rest of the dashboard down with it.
+
+**Async mail path** — a write that only sends mail after its transaction commits:
+
+```mermaid
+flowchart LR
+    F["Service<br/>writes token"] --> G["Event<br/>after commit"]
+    G --> H["Listener<br/>@Async"]
+    H --> I[("SMTP")]
+```
+
+Verification and password-reset emails are sent from a `@TransactionalEventListener(phase = AFTER_COMMIT)`, so an email can never reference a token whose transaction rolled back. The send itself runs `@Async` on a dedicated pool, so a slow SMTP server can't add latency to the request that triggered it. `MailService` retries transient SMTP failures on its own and never throws — a failure there is logged and goes no further.
 
 ## Prerequisites
 
@@ -215,7 +244,8 @@ Tests run against an in-memory H2 database, so no external services are required
 Every push to `main` and every pull request into `main`/`dev` runs through GitHub Actions:
 
 1. **Build & Test** — compiles the project and runs the full test suite against H2, publishing a JUnit test report and a JaCoCo coverage report as workflow artifacts.
-2. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
+2. **Update coverage badge** — on pushes to `main`, regenerates the `.github/badges/jacoco.svg` badge from that JaCoCo report and commits it back to the repo.
+3. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
 
 See `.github/workflows/ci.yml` for the full pipeline.
 
