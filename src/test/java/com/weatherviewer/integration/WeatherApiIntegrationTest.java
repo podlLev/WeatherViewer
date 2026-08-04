@@ -5,11 +5,13 @@ import com.weatherviewer.dto.enums.WeatherCondition;
 import com.weatherviewer.exception.ExternalHttpCallException;
 import com.weatherviewer.service.WeatherApiService;
 import com.weatherviewer.service.integration.WeatherApiClient;
+import com.weatherviewer.testcontainers.TestcontainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.ExpectedCount;
@@ -27,6 +29,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @SpringBootTest
+@Import(TestcontainersConfiguration.class)
 class WeatherApiIntegrationTest {
 
     @Autowired
