@@ -92,7 +92,7 @@ flowchart TB
     Cache[(Redis)]
     Weather[(OpenWeatherMap API)]
     Mail[(SMTP)]
- 
+
     Client --> RL --> Sec --> Web
     Client -. live updates .-> WS
     Web --> Svc
@@ -264,14 +264,14 @@ Every log line is tagged with a request correlation ID, and HTTP request latency
 ./mvnw test
 ```
 
-Tests run against an in-memory H2 database, so no external services are required. The suite includes unit tests, MVC/REST controller tests, repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo generates a coverage report at `target/site/jacoco/index.html` after running tests.
+Every test that boots a Spring context (`@SpringBootTest`, `@DataJpaTest`) runs against real Postgres and Redis via [Testcontainers](https://testcontainers.com/) — `TestcontainersConfiguration` wires both in via `@ServiceConnection`, so no manual datasource/Redis properties are needed. This needs a running Docker daemon; without one, those tests fail to start. Pure unit tests (model/DTO/enum tests, Mockito-based service tests) don't start a Spring context at all, so they're unaffected either way. The suite includes unit tests, MVC/REST controller tests (`@WebMvcTest`, which slice the web layer and don't touch a real database), repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo generates a coverage report at `target/site/jacoco/index.html` after running tests.
 
 ## CI/CD
 
 Every push to `main` and every pull request into `main`/`dev` runs through GitHub Actions:
 
-1. **Build & Test** — compiles the project and runs the full test suite against H2, publishing a JUnit test report and a JaCoCo coverage report as workflow artifacts.
-2. **Update coverage badge** — on pushes to `main`, regenerates the `.github/badges/jacoco.svg` badge from that JaCoCo report and commits it back to the repo.
+1. **Build & Test** — compiles the project and runs the full test suite (Spring-context tests against real Postgres/Redis via Testcontainers), publishing a JUnit test report and a JaCoCo coverage report as workflow artifacts.
+2. **Update coverage badge** — on pushes to `main` or `dev`, regenerates that branch's `.github/badges/jacoco.svg` badge from the JaCoCo report and commits it back.
 3. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
 
 See `.github/workflows/ci.yml` for the full pipeline.

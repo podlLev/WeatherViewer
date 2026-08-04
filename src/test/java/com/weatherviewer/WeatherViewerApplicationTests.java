@@ -1,18 +1,25 @@
 package com.weatherviewer;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.MockedStatic;
+import org.springframework.boot.SpringApplication;
 
-@SpringBootTest
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
+
 class WeatherViewerApplicationTests {
 
     @Test
-    void contextLoads() {
-    }
+    void mainStartsApplication() {
+        try (MockedStatic<SpringApplication> mocked = mockStatic(SpringApplication.class)) {
 
-    @Test
-    void mainMethodStartsApplication() {
-        WeatherViewerApplication.main(new String[] {});
-    }
+            WeatherViewerApplication.main(new String[0]);
 
+            mocked.verify(() ->
+                    SpringApplication.run(
+                            eq(WeatherViewerApplication.class),
+                            eq(new String[0])
+                    ));
+        }
+    }
 }
