@@ -261,16 +261,19 @@ Every log line is tagged with a request correlation ID, and HTTP request latency
 ## Running Tests
 
 ```bash
-./mvnw test
+./mvnw test      # fast, Docker-free: unit tests + @WebMvcTest slices
+./mvnw verify     # everything above, plus the *IT integration suite
 ```
 
-Every test that boots a Spring context (`@SpringBootTest`, `@DataJpaTest`) runs against real Postgres and Redis via [Testcontainers](https://testcontainers.com/) — `TestcontainersConfiguration` wires both in via `@ServiceConnection`, so no manual datasource/Redis properties are needed. This needs a running Docker daemon; without one, those tests fail to start. Pure unit tests (model/DTO/enum tests, Mockito-based service tests) don't start a Spring context at all, so they're unaffected either way. The suite includes unit tests, MVC/REST controller tests (`@WebMvcTest`, which slice the web layer and don't touch a real database), repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo generates a coverage report at `target/site/jacoco/index.html` after running tests.
+Unit tests (model/DTO/enum tests, Mockito-based service tests) and `@WebMvcTest` controller slices don't start a real datasource at all, so `./mvnw test` alone needs nothing but a JDK — no Docker required. Classes named `*IT` (e.g. `UserRepositoryIT`, `SignInIT`) are the ones that boot a full Spring context against real Postgres and Redis via [Testcontainers](https://testcontainers.com/) — `TestcontainersConfiguration` wires both in via `@ServiceConnection`. Maven's Failsafe plugin only runs those during `./mvnw verify`, not `./mvnw test`, so a running Docker daemon is only required for `verify`.
+
+The suite covers unit tests, MVC/REST controller tests, repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo instruments both Surefire (`test`) and Failsafe (`*IT`) runs separately, then merges the two into one combined report — that merge, and the report itself, only happen as part of `./mvnw verify`, at `target/site/jacoco/index.html`. The 90% line-coverage gate (`jacoco:check`) reads that same merged data and only runs during `verify` as well.
 
 ## CI/CD
 
 Every push to `main` and every pull request into `main`/`dev` runs through GitHub Actions:
 
-1. **Build & Test** — compiles the project and runs the full test suite (Spring-context tests against real Postgres/Redis via Testcontainers), publishing a JUnit test report and a JaCoCo coverage report as workflow artifacts.
+1. **Build & Test** — runs `./mvnw verify`: unit/slice tests via Surefire plus the `*IT` integration suite via Failsafe (real Postgres/Redis via Testcontainers), publishing a JUnit test report and the merged JaCoCo coverage report as workflow artifacts.
 2. **Update coverage badge** — on pushes to `main` or `dev`, regenerates that branch's `.github/badges/jacoco.svg` badge from the JaCoCo report and commits it back.
 3. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
 
