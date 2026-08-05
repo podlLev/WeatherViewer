@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-class SecurityIntegrationTest {
+class SecurityIT {
 
     @Autowired
     MockMvc mockMvc;

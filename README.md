@@ -249,6 +249,30 @@ Actuator runs on a separate management port so it can be kept off the public net
 
 Every log line is tagged with a request correlation ID, and HTTP request latency is exported as a histogram for easy percentile/SLO tracking.
 
+`docker-compose.yml` also runs a Prometheus + Grafana stack alongside the app, scraping `/actuator/prometheus` every 15s:
+
+```bash
+docker compose up -d
+```
+
+| Service    | URL                     | Notes                                                         |
+|:-----------|:------------------------|:---------------------------------------------------------------|
+| Prometheus | http://localhost:9090   | Scrapes `weather_viewer:8081/actuator/prometheus`               |
+| Grafana    | http://localhost:3000   | Login `admin` / `admin` (dev-only default, see below)           |
+
+Grafana auto-provisions the Prometheus datasource and a starter **Weather Viewer — Overview** dashboard on first startup — nothing to click through manually. It covers HTTP request rate/p95 latency, JVM heap usage, the Redis cache hit ratio, and the `weatherApi` circuit breaker state and retry calls (the same Resilience4j instance the [architecture diagrams](#architecture) above describe). Config lives under `monitoring/`:
+
+```
+monitoring/
+├── prometheus/prometheus.yml                     # scrape target + interval
+└── grafana/
+    ├── provisioning/datasources/datasource.yml    # auto-adds Prometheus
+    ├── provisioning/dashboards/dashboards.yml      # tells Grafana where to look
+    └── dashboards/weather-viewer-overview.json     # the starter dashboard itself
+```
+
+Grafana's admin login comes from `GRAFANA_ADMIN_USER`/`GRAFANA_ADMIN_PASSWORD` in `.env` (same pattern as `POSTGRES_PASSWORD`), falling back to `admin`/`admin` if unset — fine for a quick local run, but set them in `.env` before running this anywhere reachable off your own machine.
+
 ## Security
 
 - Passwords are hashed with BCrypt; sign-in is protected by per-account lockout after repeated failed attempts
@@ -261,16 +285,19 @@ Every log line is tagged with a request correlation ID, and HTTP request latency
 ## Running Tests
 
 ```bash
-./mvnw test
+./mvnw test      # fast, Docker-free: unit tests + @WebMvcTest slices
+./mvnw verify     # everything above, plus the *IT integration suite
 ```
 
-Every test that boots a Spring context (`@SpringBootTest`, `@DataJpaTest`) runs against real Postgres and Redis via [Testcontainers](https://testcontainers.com/) — `TestcontainersConfiguration` wires both in via `@ServiceConnection`, so no manual datasource/Redis properties are needed. This needs a running Docker daemon; without one, those tests fail to start. Pure unit tests (model/DTO/enum tests, Mockito-based service tests) don't start a Spring context at all, so they're unaffected either way. The suite includes unit tests, MVC/REST controller tests (`@WebMvcTest`, which slice the web layer and don't touch a real database), repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo generates a coverage report at `target/site/jacoco/index.html` after running tests.
+Unit tests (model/DTO/enum tests, Mockito-based service tests) and `@WebMvcTest` controller slices don't start a real datasource at all, so `./mvnw test` alone needs nothing but a JDK — no Docker required. Classes named `*IT` (e.g. `UserRepositoryIT`, `SignInIT`) are the ones that boot a full Spring context against real Postgres and Redis via [Testcontainers](https://testcontainers.com/) — `TestcontainersConfiguration` wires both in via `@ServiceConnection`. Maven's Failsafe plugin only runs those during `./mvnw verify`, not `./mvnw test`, so a running Docker daemon is only required for `verify`.
+
+The suite covers unit tests, MVC/REST controller tests, repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo instruments both Surefire (`test`) and Failsafe (`*IT`) runs separately, then merges the two into one combined report — that merge, and the report itself, only happen as part of `./mvnw verify`, at `target/site/jacoco/index.html`. The 90% line-coverage gate (`jacoco:check`) reads that same merged data and only runs during `verify` as well.
 
 ## CI/CD
 
 Every push to `main` and every pull request into `main`/`dev` runs through GitHub Actions:
 
-1. **Build & Test** — compiles the project and runs the full test suite (Spring-context tests against real Postgres/Redis via Testcontainers), publishing a JUnit test report and a JaCoCo coverage report as workflow artifacts.
+1. **Build & Test** — runs `./mvnw verify`: unit/slice tests via Surefire plus the `*IT` integration suite via Failsafe (real Postgres/Redis via Testcontainers), publishing a JUnit test report and the merged JaCoCo coverage report as workflow artifacts.
 2. **Update coverage badge** — on pushes to `main` or `dev`, regenerates that branch's `.github/badges/jacoco.svg` badge from the JaCoCo report and commits it back.
 3. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
 

@@ -80,7 +80,7 @@ public class SecurityConfig {
                                 "/verify-email", "/resend-verification",
                                 "/forgot-password", "/reset-password",
                                 "/css/**", "/images/**", "/js/**",
-                                "/actuator/health", "/actuator/health/**"
+                                "/actuator", "/actuator/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/swagger-ui.html", "/swagger-ui/**",
