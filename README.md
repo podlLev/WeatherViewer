@@ -249,6 +249,30 @@ Actuator runs on a separate management port so it can be kept off the public net
 
 Every log line is tagged with a request correlation ID, and HTTP request latency is exported as a histogram for easy percentile/SLO tracking.
 
+`docker-compose.yml` also runs a Prometheus + Grafana stack alongside the app, scraping `/actuator/prometheus` every 15s:
+
+```bash
+docker compose up -d
+```
+
+| Service    | URL                     | Notes                                                         |
+|:-----------|:------------------------|:---------------------------------------------------------------|
+| Prometheus | http://localhost:9090   | Scrapes `weather_viewer:8081/actuator/prometheus`               |
+| Grafana    | http://localhost:3000   | Login `admin` / `admin` (dev-only default, see below)           |
+
+Grafana auto-provisions the Prometheus datasource and a starter **Weather Viewer — Overview** dashboard on first startup — nothing to click through manually. It covers HTTP request rate/p95 latency, JVM heap usage, the Redis cache hit ratio, and the `weatherApi` circuit breaker state and retry calls (the same Resilience4j instance the [architecture diagrams](#architecture) above describe). Config lives under `monitoring/`:
+
+```
+monitoring/
+├── prometheus/prometheus.yml                     # scrape target + interval
+└── grafana/
+    ├── provisioning/datasources/datasource.yml    # auto-adds Prometheus
+    ├── provisioning/dashboards/dashboards.yml      # tells Grafana where to look
+    └── dashboards/weather-viewer-overview.json     # the starter dashboard itself
+```
+
+Grafana's admin login comes from `GRAFANA_ADMIN_USER`/`GRAFANA_ADMIN_PASSWORD` in `.env` (same pattern as `POSTGRES_PASSWORD`), falling back to `admin`/`admin` if unset — fine for a quick local run, but set them in `.env` before running this anywhere reachable off your own machine.
+
 ## Security
 
 - Passwords are hashed with BCrypt; sign-in is protected by per-account lockout after repeated failed attempts
