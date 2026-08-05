@@ -17,6 +17,9 @@ jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -41,7 +44,7 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: Maven Tests
-          path: "target/surefire-reports/*.xml,target/failsafe-reports/*.xml"
+          path: "target/surefire-reports/TEST-*.xml,target/failsafe-reports/TEST-*.xml"
           reporter: java-junit
 
       - name: Upload JaCoCo coverage report
