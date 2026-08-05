@@ -30,7 +30,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-class WeatherApiIntegrationTest {
+class WeatherApiIT {
 
     @Autowired
     private RestClient.Builder restClientBuilder;

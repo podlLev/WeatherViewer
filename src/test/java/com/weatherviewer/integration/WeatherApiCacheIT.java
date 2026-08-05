@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
  */
 @SpringBootTest
 @Import(TestcontainersConfiguration.class)
-class WeatherApiCacheIntegrationTest {
+class WeatherApiCacheIT {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

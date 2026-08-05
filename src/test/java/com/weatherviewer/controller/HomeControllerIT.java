@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-class HomeControllerTest {
+class HomeControllerIT {
 
     @Autowired
     MockMvc mockMvc;
