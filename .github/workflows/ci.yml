@@ -17,6 +17,9 @@ jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -32,19 +35,16 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Run tests
-        # Tests run against the in-memory H2 DB and spring.cache.type=simple,
-        # so no Postgres/Redis service containers are needed here.
-        # WEATHER_API_KEY just needs to be non-empty; tests mock the HTTP client.
         env:
           WEATHER_API_KEY: dummy-ci-key
-        run: ./mvnw -B test
+        run: ./mvnw -B verify
 
       - name: Publish test report
         if: always()
         uses: dorny/test-reporter@v3
         with:
           name: Maven Tests
-          path: target/surefire-reports/*.xml
+          path: "target/surefire-reports/TEST-*.xml,target/failsafe-reports/TEST-*.xml"
           reporter: java-junit
 
       - name: Upload JaCoCo coverage report
@@ -66,7 +66,46 @@ jobs:
           path: target/*.jar
 
   # ---------------------------------------------------------------------
-  # 2. Build + push a versioned image to Docker Hub
+  # 2. Regenerate the coverage badge from the JaCoCo report and commit it
+  #    - runs ONLY on: pushes to main or dev
+  #    - the ref check alone excludes pull_request events: their ref is
+  #      refs/pull/<number>/merge, never refs/heads/main or .../dev
+  #    - actions/checkout defaults to the triggering ref, so the commit
+  #      lands back on whichever branch (main or dev) was just pushed
+  #    - reads target/site/jacoco/jacoco.csv from the `test` job above
+  # ---------------------------------------------------------------------
+  coverage-badge:
+    name: Update Coverage Badge
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download JaCoCo report
+        uses: actions/download-artifact@v7
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+      - name: Generate coverage badge
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          jacoco-csv-file: target/site/jacoco/jacoco.csv
+          badges-directory: .github/badges
+          generate-branches-badge: false
+          generate-summary: false
+
+      - name: Commit badge
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update coverage badge [skip ci]"
+          file_pattern: .github/badges/*.svg
+
+  # ---------------------------------------------------------------------
+  # 3. Build + push a versioned image to Docker Hub
   #    - runs ONLY on: pushes to main
   #    - every push to main -> :<pom-version>  :latest
   #    - pushes to dev, and all PRs -> this job does not run at all

@@ -60,3 +60,52 @@ body {
 .theme-toggle-btn:hover {
     background-color: var(--bs-secondary-bg);
 }
+
+/* Leaflet map (map.html) — leaflet.css hardcodes light backgrounds for its
+   own chrome (popups, zoom buttons, layer control, attribution) and loads
+   after this file, so these need !important to win the cascade. Using
+   Bootstrap's theme-aware CSS variables (rather than scoping under
+   [data-bs-theme="dark"]) means one rule set covers both themes, the same
+   way .theme-toggle-btn does above. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip,
+.leaflet-bar a,
+.leaflet-control-layers,
+.leaflet-control-layers-expanded {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+}
+
+.leaflet-bar a {
+    border-color: var(--bs-border-color) !important;
+}
+
+.leaflet-bar a:hover {
+    background-color: var(--bs-secondary-bg) !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--bs-body-color) !important;
+}
+
+.leaflet-control-attribution {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-secondary-color) !important;
+}
+
+.leaflet-control-attribution a {
+    color: var(--bs-link-color) !important;
+}
+
+[data-bs-theme="dark"] .base-map-tiles {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.weather-card, .card {
+    transition: box-shadow 0.4s ease-out, border-color 0.4s ease-out;
+}
+
+.live-updated {
+    box-shadow: 0 0 0 2px var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+}

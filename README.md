@@ -10,13 +10,15 @@
   <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 17">
   <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" alt="Redis 7">
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white" alt="Docker ready">
-  <img src="https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white" alt="CI GitHub Actions">
+  <a href="https://github.com/podlLev/WeatherViewer/actions/workflows/ci.yml"><img src="https://github.com/podlLev/WeatherViewer/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status"></a>
+  <img src="https://raw.githubusercontent.com/podlLev/WeatherViewer/main/.github/badges/jacoco.svg" alt="Coverage">
 </p>
 
 <p align="center">
   <a href="#overview">Overview</a> ·
   <a href="#features">Features</a> ·
   <a href="#tech-stack">Tech Stack</a> ·
+  <a href="#architecture">Architecture</a> ·
   <a href="#getting-started">Getting Started</a> ·
   <a href="#api-documentation">API Docs</a> ·
   <a href="#observability">Observability</a> ·
@@ -73,6 +75,60 @@ WeatherViewer is a personal weather dashboard for tracking the places you care a
 | Containerization | Docker, Docker Compose (non-root runtime image)                                            |
 | CI/CD            | GitHub Actions (build/test, coverage, Docker Hub image push)                               |
 | External API     | [OpenWeatherMap](https://openweathermap.org/api) (current weather, forecast, geocoding)    |
+
+## Architecture
+
+**System overview** — the app sits between the browser and four external dependencies. Every HTTP request passes through the rate limiter and the security filter chain before reaching a controller; live dashboard/forecast updates instead flow over a persistent WebSocket connection, pushed on a schedule rather than requested:
+
+```mermaid
+flowchart TB
+    Client[Browser client]
+    RL[Rate limiter]
+    Sec[Security filter chain]
+    Web[Controllers + REST]
+    WS[WebSocket / STOMP]
+    Svc[Services]
+    DB[(PostgreSQL)]
+    Cache[(Redis)]
+    Weather[(OpenWeatherMap API)]
+    Mail[(SMTP)]
+
+    Client --> RL --> Sec --> Web
+    Client -. live updates .-> WS
+    Web --> Svc
+    WS --> Svc
+    Svc --> DB
+    Svc --> Cache
+    Svc --> Weather
+    Svc --> Mail
+```
+
+Postgres holds users, locations, and tokens (schema managed by Liquibase). Redis backs both the rate limiter's fixed-window counters and the weather/forecast/geocoding cache. The two flows below zoom into the parts of this picture that need to tolerate a flaky dependency: weather reads and outbound mail.
+
+Two request paths matter most for reliability: reads that hit the OpenWeatherMap API, and emails triggered by account actions. Both are built so a slow or failing dependency degrades gracefully instead of taking the app down with it.
+
+**Weather read path** — a cache-aside read guarded by retry and a circuit breaker:
+
+```mermaid
+flowchart LR
+    A[Controller] --> B["Cache<br/>@Cacheable"]
+    B --> C["Client<br/>retry + breaker"]
+    C --> D[("Weather API")]
+    C -. fallback .-> E["Fallback<br/>service unavailable"]
+```
+
+A cache hit never reaches `WeatherApiClient`. On a miss, every outbound call is wrapped with Resilience4j: transient failures are retried with backoff, and once OpenWeatherMap is failing consistently the breaker opens and short-circuits straight to the fallback instead of piling up slow requests — so one saved location failing to load doesn't take the rest of the dashboard down with it.
+
+**Async mail path** — a write that only sends mail after its transaction commits:
+
+```mermaid
+flowchart LR
+    F["Service<br/>writes token"] --> G["Event<br/>after commit"]
+    G --> H["Listener<br/>@Async"]
+    H --> I[("SMTP")]
+```
+
+Verification and password-reset emails are sent from a `@TransactionalEventListener(phase = AFTER_COMMIT)`, so an email can never reference a token whose transaction rolled back. The send itself runs `@Async` on a dedicated pool, so a slow SMTP server can't add latency to the request that triggered it. `MailService` retries transient SMTP failures on its own and never throws — a failure there is logged and goes no further.
 
 ## Prerequisites
 
@@ -193,6 +249,30 @@ Actuator runs on a separate management port so it can be kept off the public net
 
 Every log line is tagged with a request correlation ID, and HTTP request latency is exported as a histogram for easy percentile/SLO tracking.
 
+`docker-compose.yml` also runs a Prometheus + Grafana stack alongside the app, scraping `/actuator/prometheus` every 15s:
+
+```bash
+docker compose up -d
+```
+
+| Service    | URL                     | Notes                                                         |
+|:-----------|:------------------------|:---------------------------------------------------------------|
+| Prometheus | http://localhost:9090   | Scrapes `weather_viewer:8081/actuator/prometheus`               |
+| Grafana    | http://localhost:3000   | Login `admin` / `admin` (dev-only default, see below)           |
+
+Grafana auto-provisions the Prometheus datasource and a starter **Weather Viewer — Overview** dashboard on first startup — nothing to click through manually. It covers HTTP request rate/p95 latency, JVM heap usage, the Redis cache hit ratio, and the `weatherApi` circuit breaker state and retry calls (the same Resilience4j instance the [architecture diagrams](#architecture) above describe). Config lives under `monitoring/`:
+
+```
+monitoring/
+├── prometheus/prometheus.yml                     # scrape target + interval
+└── grafana/
+    ├── provisioning/datasources/datasource.yml    # auto-adds Prometheus
+    ├── provisioning/dashboards/dashboards.yml      # tells Grafana where to look
+    └── dashboards/weather-viewer-overview.json     # the starter dashboard itself
+```
+
+Grafana's admin login comes from `GRAFANA_ADMIN_USER`/`GRAFANA_ADMIN_PASSWORD` in `.env` (same pattern as `POSTGRES_PASSWORD`), falling back to `admin`/`admin` if unset — fine for a quick local run, but set them in `.env` before running this anywhere reachable off your own machine.
+
 ## Security
 
 - Passwords are hashed with BCrypt; sign-in is protected by per-account lockout after repeated failed attempts
@@ -205,17 +285,21 @@ Every log line is tagged with a request correlation ID, and HTTP request latency
 ## Running Tests
 
 ```bash
-./mvnw test
+./mvnw test      # fast, Docker-free: unit tests + @WebMvcTest slices
+./mvnw verify     # everything above, plus the *IT integration suite
 ```
 
-Tests run against an in-memory H2 database, so no external services are required. The suite includes unit tests, MVC/REST controller tests, repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo generates a coverage report at `target/site/jacoco/index.html` after running tests.
+Unit tests (model/DTO/enum tests, Mockito-based service tests) and `@WebMvcTest` controller slices don't start a real datasource at all, so `./mvnw test` alone needs nothing but a JDK — no Docker required. Classes named `*IT` (e.g. `UserRepositoryIT`, `SignInIT`) are the ones that boot a full Spring context against real Postgres and Redis via [Testcontainers](https://testcontainers.com/) — `TestcontainersConfiguration` wires both in via `@ServiceConnection`. Maven's Failsafe plugin only runs those during `./mvnw verify`, not `./mvnw test`, so a running Docker daemon is only required for `verify`.
+
+The suite covers unit tests, MVC/REST controller tests, repository tests, and full integration tests for auth (including verification, password reset, and remember-me), search, profile, and weather flows. JaCoCo instruments both Surefire (`test`) and Failsafe (`*IT`) runs separately, then merges the two into one combined report — that merge, and the report itself, only happen as part of `./mvnw verify`, at `target/site/jacoco/index.html`. The 90% line-coverage gate (`jacoco:check`) reads that same merged data and only runs during `verify` as well.
 
 ## CI/CD
 
 Every push to `main` and every pull request into `main`/`dev` runs through GitHub Actions:
 
-1. **Build & Test** — compiles the project and runs the full test suite against H2, publishing a JUnit test report and a JaCoCo coverage report as workflow artifacts.
-2. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
+1. **Build & Test** — runs `./mvnw verify`: unit/slice tests via Surefire plus the `*IT` integration suite via Failsafe (real Postgres/Redis via Testcontainers), publishing a JUnit test report and the merged JaCoCo coverage report as workflow artifacts.
+2. **Update coverage badge** — on pushes to `main` or `dev`, regenerates that branch's `.github/badges/jacoco.svg` badge from the JaCoCo report and commits it back.
+3. **Docker build & push** — on pushes to `main`, builds the application image and pushes it to Docker Hub as `podllev/weather-viewer`.
 
 See `.github/workflows/ci.yml` for the full pipeline.
 

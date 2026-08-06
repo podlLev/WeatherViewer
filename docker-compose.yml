@@ -1,10 +1,10 @@
 services:
-  weather_viewer:
+  weather-viewer:
     build:
       context: .
       dockerfile: Dockerfile
     image: podllev/weather-viewer:latest
-    container_name: weather_viewer
+    container_name: weather-viewer
     restart: always
     ports:
       - "8080:8080"
@@ -28,7 +28,7 @@ services:
 
   postgres:
     image: postgres:17
-    container_name: weather_viewer_db
+    container_name: weather-viewer-db
     restart: always
     env_file:
       - .env
@@ -47,7 +47,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: weather_viewer_redis
+    container_name: weather-viewer-redis
     restart: always
     ports:
       - "6379:6379"
@@ -59,6 +59,46 @@ services:
       timeout: 5s
       retries: 5
 
+  prometheus:
+    image: prom/prometheus:v3.8.1
+    container_name: weather-viewer-prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/ready" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      weather-viewer:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:13.1.1
+    container_name: weather-viewer-grafana
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
 volumes:
   postgres_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
