@@ -4,7 +4,8 @@ import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCust
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.cache.RedisCacheManager;
+
+import java.util.Set;
 
 @Configuration
 @EnableCaching
@@ -12,7 +13,9 @@ public class CacheConfig {
 
     @Bean
     public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return RedisCacheManager.RedisCacheManagerBuilder::enableStatistics;
+        return builder -> builder
+                .enableStatistics()
+                .initialCacheNames(Set.of("weatherCache", "forecastCache", "geoCache"));
     }
 
 }
