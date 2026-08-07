@@ -15,6 +15,10 @@
 </p>
 
 <p align="center">
+  <img src=".github/assets/demo.gif" width="720" alt="WeatherViewer demo: search a city, save it, view the dashboard and forecast">
+</p>
+
+<p align="center">
   <a href="#overview">Overview</a> ·
   <a href="#features">Features</a> ·
   <a href="#tech-stack">Tech Stack</a> ·
@@ -111,10 +115,10 @@ Two request paths matter most for reliability: reads that hit the OpenWeatherMap
 
 ```mermaid
 flowchart LR
-    A[Controller] --> B["Cache<br/>@Cacheable"]
-    B --> C["Client<br/>retry + breaker"]
+    A[Controller] --> B["Cache: @Cacheable"]
+    B --> C["Client: retry + breaker"]
     C --> D[("Weather API")]
-    C -. fallback .-> E["Fallback<br/>service unavailable"]
+    C -. fallback .-> E["Fallback: service unavailable"]
 ```
 
 A cache hit never reaches `WeatherApiClient`. On a miss, every outbound call is wrapped with Resilience4j: transient failures are retried with backoff, and once OpenWeatherMap is failing consistently the breaker opens and short-circuits straight to the fallback instead of piling up slow requests — so one saved location failing to load doesn't take the rest of the dashboard down with it.
@@ -123,8 +127,8 @@ A cache hit never reaches `WeatherApiClient`. On a miss, every outbound call is 
 
 ```mermaid
 flowchart LR
-    F["Service<br/>writes token"] --> G["Event<br/>after commit"]
-    G --> H["Listener<br/>@Async"]
+    F["Service: writes token"] --> G["Event: after commit"]
+    G --> H["Listener: @Async"]
     H --> I[("SMTP")]
 ```
 
